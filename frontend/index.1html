@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blood Bank Login</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body {
+      background: linear-gradient(135deg, #b91c1c, #ef4444);
+      display: flex; align-items: center; justify-content: center;
+      height: 100vh; margin: 0;
+    }
+    .login-box {
+      background: #fff; padding: 2.5rem; border-radius: 15px;
+      width: 360px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    h2 { text-align: center; color: #b91c1c; margin-bottom: 1.5rem; }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-weight: 600; margin-bottom: 0.4rem; color: #333; }
+    input, select {
+      width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px;
+      font-size: 1rem; transition: 0.2s;
+    }
+    input:focus, select:focus { border-color: #b91c1c; outline: none; }
+    .remember-row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.9rem; margin: 0.8rem 0;
+    }
+    button {
+      width: 100%; padding: 0.9rem; border: none; border-radius: 8px;
+      background-color: #b91c1c; color: white; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: 0.3s;
+    }
+    button:hover { background-color: #991b1b; }
+    .footer { text-align: center; margin-top: 1rem; font-size: 0.9rem; color: #555; }
+    .footer a { color: #b91c1c; text-decoration: none; }
+    .error { color: #b91c1c; font-size: 0.9rem; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>🩸 Blood Bank Login</h2>
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="Enter your email" required />
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Enter your password" required />
+      </div>
+
+      <div class="form-group">
+        <label>Role</label>
+        <select id="role" required>
+          <option value="">-- Choose your role --</option>
+          <option value="admin">Admin</option>
+          <option value="employee">Employee</option>
+          <option value="donor">Donor</option>
+          <option value="customer">Customer</option>
+          <option value="hospital">Hospital</option>
+        </select>
+      </div>
+
+      <div class="remember-row">
+        <label><input type="checkbox" id="remember" /> Remember me</label>
+        <a href="#">Forgot password?</a>
+      </div>
+
+      <button type="submit">Login</button>
+      <p id="errorMsg" class="error"></p>
+
+      <div class="footer">
+        Don’t have an account? <a href="#">Register here</a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById("loginForm");
+    const errorMsg = document.getElementById("errorMsg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorMsg.textContent = "";
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const role = document.getElementById("role").value;
+
+      if (!email || !password || !role) {
+        errorMsg.textContent = "Please fill in all fields.";
+        return;
+      }
+
+      const payload = { email, password, role };
+
+      try {
+        const res = await fetch("http://localhost:5000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) throw new Error("Invalid credentials");
+
+        const data = await res.json();
+        const { token, role: userRole, user } = data;
+
+        // Store JWT in localStorage
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+
+        // Redirect based on role
+        switch (userRole) {
+          case "admin": window.location.href = "/admin/dashboard.html"; break;
+          case "employee": window.location.href = "/employee/dashboard.html"; break;
+          case "donor": window.location.href = "/donor/dashboard.html"; break;
+          case "customer": window.location.href = "/customer/dashboard.html"; break;
+          case "hospital": window.location.href = "/hospital/dashboard.html"; break;
+          default: window.location.href = "/login.html";
+        }
+      } catch (err) {
+        errorMsg.textContent = "Login failed. Please check your credentials.";
+      }
+    });
+  </script>
+</body>
+</html>
