@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Foundation Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: "Segoe UI", sans-serif;
+    }
+    .header {
+      background-color: red;
+      color: white;
+      text-align: center;
+      padding: 25px 0;
+      margin-bottom: 40px;
+    }
+    .header h1 {
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    .table-container {
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin: 20px auto;
+      width: 90%;
+    }
+    .table th {
+      background-color: red;
+      color: white;
+    }
+    .btn-nav {
+      text-align: center;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <div class="header">
+    <h1>Foundation Dashboard</h1>
+    <p>Overview of all Foundations, their Hospitals and Blood Banks</p>
+  </div>
+
+  <!-- Foundation Table -->
+  <div class="table-container">
+    <h4 class="text-danger mb-3">Registered Foundations</h4>
+    <table class="table table-bordered table-hover text-center align-middle">
+      <thead>
+        <tr>
+          <th>Foundation ID</th>
+          <th>Name</th>
+          <th>Address</th>
+          <th>Contact</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in foundations %}
+        <tr>
+          <td>{{ f.F_id }}</td>
+          <td>{{ f.F_name }}</td>
+          <td>{{ f.F_address }}</td>
+          <td>{{ f.F_contact }}</td>
+          <td>{{ f.F_mail_id }}</td>
+        </tr>
+        {% endfor %}
+        {% if not foundations %}
+        <tr><td colspan="5">No foundations available.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Linked Hospitals -->
+  <div class="table-container">
+    <h4 class="text-danger mb-3">Hospitals Under Each Foundation</h4>
+    <table class="table table-bordered table-hover text-center align-middle">
+      <thead>
+        <tr>
+          <th>Hospital ID</th>
+          <th>Hospital Name</th>
+          <th>Address</th>
+          <th>Contact</th>
+          <th>Foundation ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in hospitals %}
+        <tr>
+          <td>{{ h.Hs_id }}</td>
+          <td>{{ h.Hs_name }}</td>
+          <td>{{ h.Hs_address }}</td>
+          <td>{{ h.Hs_contact }}</td>
+          <td>{{ h.F1_id }}</td>
+        </tr>
+        {% endfor %}
+        {% if not hospitals %}
+        <tr><td colspan="5">No hospitals linked to foundations.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Linked Blood Banks -->
+  <div class="table-container mb-5">
+    <h4 class="text-danger mb-3">Blood Banks Under Each Foundation</h4>
+    <table class="table table-bordered table-hover text-center align-middle">
+      <thead>
+        <tr>
+          <th>Blood Bank ID</th>
+          <th>Name</th>
+          <th>Address</th>
+          <th>Contact</th>
+          <th>Type</th>
+          <th>Volume</th>
+          <th>Foundation ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in banks %}
+        <tr>
+          <td>{{ b.BB_id }}</td>
+          <td>{{ b.BB_name }}</td>
+          <td>{{ b.BB_address }}</td>
+          <td>{{ b.BB_contact }}</td>
+          <td>{{ b.BB_type }}</td>
+          <td>{{ b.BB_volume }}</td>
+          <td>{{ b.F2_id }}</td>
+        </tr>
+        {% endfor %}
+        {% if not banks %}
+        <tr><td colspan="7">No blood banks linked to foundations.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="btn-nav">
+    <a href="/" class="btn btn-secondary m-2">Back to Home</a>
+    <a href="/admin" class="btn btn-danger m-2">Admin Dashboard</a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

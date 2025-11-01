@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hospital Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: "Segoe UI", sans-serif;
+    }
+    .header {
+      background-color: red;
+      color: white;
+      text-align: center;
+      padding: 25px 0;
+      margin-bottom: 40px;
+    }
+    .header h1 {
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    .table-container {
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin: 20px auto;
+      width: 90%;
+    }
+    .table th {
+      background-color: red;
+      color: white;
+      text-align: center;
+    }
+    .btn-nav {
+      text-align: center;
+      margin: 40px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <div class="header">
+    <h1>Hospital Dashboard</h1>
+    <p>Hospitals linked with Foundations and Customers</p>
+  </div>
+
+  <!-- Hospital Table -->
+  <div class="table-container">
+    <h4 class="text-danger mb-3">Registered Hospitals</h4>
+    <table class="table table-bordered table-hover text-center align-middle">
+      <thead>
+        <tr>
+          <th>Hospital ID</th>
+          <th>Name</th>
+          <th>Address</th>
+          <th>Contact</th>
+          <th>Foundation ID</th>
+          <th>Customer ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in hospitals %}
+        <tr>
+          <td>{{ h.Hs_id }}</td>
+          <td>{{ h.Hs_name }}</td>
+          <td>{{ h.Hs_address }}</td>
+          <td>{{ h.Hs_contact }}</td>
+          <td>{{ h.F1_id }}</td>
+          <td>{{ h.C1_id }}</td>
+        </tr>
+        {% endfor %}
+        {% if not hospitals %}
+        <tr><td colspan="6">No hospitals found.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Linked Blood Banks -->
+  <div class="table-container">
+    <h4 class="text-danger mb-3">Blood Banks Linked to Hospitals</h4>
+    <table class="table table-bordered table-hover text-center align-middle">
+      <thead>
+        <tr>
+          <th>Blood Bank ID</th>
+          <th>Name</th>
+          <th>Address</th>
+          <th>Contact</th>
+          <th>Type</th>
+          <th>Volume</th>
+          <th>Hospital ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in banks %}
+        <tr>
+          <td>{{ b.BB_id }}</td>
+          <td>{{ b.BB_name }}</td>
+          <td>{{ b.BB_address }}</td>
+          <td>{{ b.BB_contact }}</td>
+          <td>{{ b.BB_type }}</td>
+          <td>{{ b.BB_volume }}</td>
+          <td>{{ b.Hs1_id }}</td>
+        </tr>
+        {% endfor %}
+        {% if not banks %}
+        <tr><td colspan="7">No blood banks linked to hospitals.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Orders Linked to Hospitals -->
+  <div class="table-container mb-5">
+    <h4 class="text-danger mb-3">Orders Placed by Hospitals</h4>
+    <table class="table table-bordered table-hover text-center align-middle">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Date</th>
+          <th>Quantity</th>
+          <th>Status</th>
+          <th>Type</th>
+          <th>Customer ID</th>
+          <th>Hospital ID</th>
+          <th>Blood Bank ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+        <tr>
+          <td>{{ o.Or_id }}</td>
+          <td>{{ o.Or_date }}</td>
+          <td>{{ o.Or_quantity }}</td>
+          <td>{{ o.Or_status }}</td>
+          <td>{{ o.Or_type }}</td>
+          <td>{{ o.C2_id }}</td>
+          <td>{{ o.Hs2_id }}</td>
+          <td>{{ o.BB4_id }}</td>
+        </tr>
+        {% endfor %}
+        {% if not orders %}
+        <tr><td colspan="8">No orders found for hospitals.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="btn-nav">
+    <a href="/" class="btn btn-secondary m-2">Back to Home</a>
+    <a href="/admin" class="btn btn-danger m-2">Admin Dashboard</a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
