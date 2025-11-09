@@ -2,7 +2,7 @@
 
 --FOUNDATION--
 INSERT INTO Foundation VALUES(1,'Aryams','chrompet chennai',967795741,'aryam@gmail.com'); 
-INSERT INTO Foundation VALUES(2,'Ashika','palayankottai tirunelveli',9677595742,'ashi@gmail.com');
+
 
 --CUSTOMER--
 INSERT INTO Customer VALUES (301,'Ramesh','Chennai',9003100301,'Male','No history');

@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
-<h3 class="text-center">INVOICES</h3>
+<h3 class="text-center">TRANSACTION RECORDS</h3>
 <table class="table table-bordered mt-4">
   <thead><tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
   <tbody>
   {% for row in data %}<tr>{% for c in row %}<td>{{ c }}</td>{% endfor %}</tr>{% endfor %}
   </tbody>
 </table>
-<a href="/order" class="btn btn-outline-danger mt-3">⬅ Orders</a>
-<a href="/transaction" class="btn btn-outline-danger mt-3">Next: Transactions ➜</a>
+<a href="/invoice" class="btn btn-outline-danger mt-3">⬅ Invoices</a>
+<a href="/admin" class="btn btn-outline-danger mt-3">Next: Admin ➜</a>
 {% endblock %}
