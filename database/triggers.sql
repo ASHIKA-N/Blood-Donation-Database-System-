@@ -371,6 +371,19 @@ BEGIN
     IF :NEW.T_time IS NULL THEN :NEW.T_time := SYSTIMESTAMP; END IF;
 END;
 /
+
+CREATE SEQUENCE appointment_seq START WITH 1 INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER trg_appointment_id
+BEFORE INSERT ON Appointment
+FOR EACH ROW
+BEGIN
+    IF :NEW.App_id IS NULL THEN
+        SELECT appointment_seq.NEXTVAL INTO :NEW.App_id FROM dual;
+    END IF;
+END;
+/
+
 ------------------------------------------------------------
 
 COMMIT;

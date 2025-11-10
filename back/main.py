@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 import oracledb
 
 # --------------------------------------------------------
@@ -9,6 +9,7 @@ import oracledb
 
 app = Flask(__name__, template_folder="../front")
 app.static_folder = "../front"
+app.secret_key = "supersecretkey"
 
 
 def get_db_connection():
@@ -28,8 +29,6 @@ def index():
     return render_template("index.html")
 
 
-
-
 # --------------------------------------------------------
 # 🧱 FOUNDATION DASHBOARD (ADD + VIEW)
 # --------------------------------------------------------
@@ -38,7 +37,6 @@ def foundation_dashboard():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Add new foundation
     if request.method == "POST":
         name = request.form.get("F_name")
         address = request.form.get("F_address")
@@ -46,13 +44,14 @@ def foundation_dashboard():
         email = request.form.get("F_email")
         try:
             cursor.execute("""
-                INSERT INTO Foundation (F_id, F_name, F_address, F_contact, F_email)
+                INSERT INTO Foundation (F_id, F_name, F_address, F_contact, F_mail_id)
                 VALUES (foundation_seq.NEXTVAL, :1, :2, :3, :4)
             """, (name, address, contact, email))
             conn.commit()
+            flash("✅ Foundation added successfully!")
         except Exception as e:
             conn.rollback()
-            return f"<h3 style='color:red'>❌ Error adding foundation: {e}</h3>"
+            flash(f"❌ Error adding foundation: {e}")
 
     cursor.execute("SELECT * FROM Foundation ORDER BY F_id")
     rows = cursor.fetchall()
@@ -77,13 +76,14 @@ def hospital_dashboard():
         f_id = request.form.get("F1_id")
         try:
             cursor.execute("""
-                INSERT INTO Hospital (Hs_name, Hs_address, Hs_contact, F1_id)
-                VALUES (:1, :2, :3, :4)
+                INSERT INTO Hospital (Hs_id, Hs_name, Hs_address, Hs_contact, F1_id)
+                VALUES (hospital_seq.NEXTVAL, :1, :2, :3, :4)
             """, (name, address, contact, f_id))
             conn.commit()
+            flash("✅ Hospital added successfully!")
         except Exception as e:
             conn.rollback()
-            return f"<h3 style='color:red'>❌ Error adding hospital: {e}</h3>"
+            flash(f"❌ Error adding hospital: {e}")
 
     cursor.execute("SELECT * FROM Hospital ORDER BY Hs_id")
     hospitals = [dict(zip([c[0] for c in cursor.description], row)) for row in cursor.fetchall()]
@@ -93,10 +93,7 @@ def hospital_dashboard():
 
 
 # --------------------------------------------------------
-# 🩸 BLOOD BANK DASHBOARD
-# --------------------------------------------------------
-# --------------------------------------------------------
-# 🩸 BLOOD BANK DASHBOARD (Add + View + Add Employee)
+# 🩸 BLOOD BANK DASHBOARD (Add + View)
 # --------------------------------------------------------
 @app.route("/bloodbank", methods=["GET", "POST"])
 def bloodbank_dashboard():
@@ -117,29 +114,12 @@ def bloodbank_dashboard():
                 VALUES (bloodbank_seq.NEXTVAL, :1, :2, :3, :4, :5, :6)
             """, (name, address, contact, volume, btype, f_id))
             conn.commit()
+            flash("✅ Blood bank added successfully!")
         except Exception as e:
             conn.rollback()
-            return f"<h3 style='color:red'>❌ Error adding blood bank: {e}</h3>"
+            flash(f"❌ Error adding blood bank: {e}")
 
-    # 👥 ADD EMPLOYEE TO BLOOD BANK
-    elif request.method == "POST" and "E_name" in request.form:
-        e_name = request.form.get("E_name")
-        e_address = request.form.get("E_address")
-        e_contact = request.form.get("E_contact")
-        e_designation = request.form.get("E_designation")
-        e_exp = request.form.get("E_experience")
-        bb_id = request.form.get("BB_id")
-        try:
-            cursor.execute("""
-                INSERT INTO Employee (E_id, E_name, E_address, E_contact, E_designation, E_experience, BB1_id)
-                VALUES (employee_seq.NEXTVAL, :1, :2, :3, :4, :5, :6)
-            """, (e_name, e_address, e_contact, e_designation, e_exp, bb_id))
-            conn.commit()
-        except Exception as e:
-            conn.rollback()
-            return f"<h3 style='color:red'>❌ Error adding employee: {e}</h3>"
-
-    # 📋 FETCH BLOOD BANKS (for table + dropdown)
+    # 📋 FETCH BLOOD BANKS (for dropdown + display)
     cursor.execute("SELECT BB_id, BB_name FROM Bloodbank ORDER BY BB_id")
     bloodbanks = cursor.fetchall()
 
@@ -165,64 +145,94 @@ def bloodbank_dashboard():
                            employees=employees,
                            e_headers=e_headers)
 
+
 # --------------------------------------------------------
-# 👨‍💼 EMPLOYEE DASHBOARD (Add + View)
+# ➕ ADD EMPLOYEE TO BLOOD BANK
+# --------------------------------------------------------
+@app.route("/add_employee", methods=["POST"])
+def add_employee():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        e_name = request.form.get("E_name")
+        e_address = request.form.get("E_address")
+        e_contact = request.form.get("E_contact")
+        e_age = request.form.get("E_age")
+        e_designation = request.form.get("E_designation")
+        e_exp = request.form.get("E_experience")
+        bb_id = request.form.get("BB1_id")
+
+        cursor.execute("""
+            INSERT INTO Employee (E_id, E_name, E_address, E_contact, E_age,
+                                  E_designation, E_experience, BB1_id)
+            VALUES (employee_seq.NEXTVAL, :1, :2, :3, :4, :5, :6, :7)
+        """, (e_name, e_address, e_contact, e_age, e_designation, e_exp, bb_id))
+        conn.commit()
+        flash("✅ Employee added successfully!")
+    except Exception as e:
+        conn.rollback()
+        flash(f"❌ Error adding employee: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+    return redirect(url_for("bloodbank_dashboard"))
+
+
+# --------------------------------------------------------
+# 👨‍💼 EMPLOYEE DASHBOARD
 # --------------------------------------------------------
 @app.route("/employee", methods=["GET", "POST"])
 def employee_dashboard():
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cur = conn.cursor()
 
-    # 🩸 Fetch blood banks for dropdown
-    cursor.execute("SELECT BB_id, BB_name FROM Bloodbank ORDER BY BB_id")
-    bloodbanks = cursor.fetchall()
+    # --- Add Appointment ---
+    if request.method == "POST" and "D1_id" in request.form:
+        cur.execute("""
+            INSERT INTO Appointment (App_id, App_date, D1_id, C1_id)
+            VALUES (appointment_seq.NEXTVAL, TO_DATE(:1, 'YYYY-MM-DD'), :2, :3)
+        """, [
+            request.form["App_date"],
+            request.form["D1_id"],
+            request.form["C1_id"]
+        ])
+        conn.commit()
 
-    # ➕ Add new employee to selected blood bank
-    if request.method == "POST":
-        name = request.form.get("E_name")
-        address = request.form.get("E_address")
-        contact = request.form.get("E_contact")
-        age = request.form.get("E_age")
-        designation = request.form.get("E_designation")
-        exp = request.form.get("E_experience")
-        bb_id = request.form.get("BB1_id")  # dropdown selection
+    # --- Update Status ---
+    if request.method == "POST" and "App_status" in request.form:
+        cur.execute("""
+            UPDATE Appointment SET App_status = :1 WHERE App_id = :2
+        """, [request.form["App_status"], request.form["App_id"]])
+        conn.commit()
 
-        try:
-            cursor.execute("""
-                INSERT INTO Employee (E_id, E_name, E_address, E_contact, E_age, 
-                                      E_designation, E_experience, BB1_id)
-                VALUES (employee_seq.NEXTVAL, :1, :2, :3, :4, :5, :6, :7)
-            """, (name, address, contact, age, designation, exp, bb_id))
-            conn.commit()
-        except Exception as e:
-            conn.rollback()
-            return f"<h3 style='color:red'>❌ Error adding employee: {e}</h3>"
+    # --- Fetch dropdown data ---
+    cur.execute("SELECT BB_id, BB_name FROM Bloodbank")
+    bloodbanks = cur.fetchall()
 
-    # 📊 Fetch employees grouped by blood bank
-    cursor.execute("""
-        SELECT b.BB_name, e.E_id, e.E_name, e.E_designation, e.E_experience, e.E_contact
-        FROM Employee e
-        JOIN Bloodbank b ON e.BB1_id = b.BB_id
-        ORDER BY b.BB_name, e.E_id
+    cur.execute("SELECT D_id, D_name, D_contact FROM Donor")
+    donors = cur.fetchall()
+
+    cur.execute("SELECT C_id, C_name, C_contact FROM Customer")
+    customers = cur.fetchall()
+
+    # --- Fetch appointments ---
+    cur.execute("""
+        SELECT A.App_id, D.D_name, C.C_name, A.App_date, A.App_status
+        FROM Appointment A
+        JOIN Donor D ON A.D1_id = D.D_id
+        JOIN Customer C ON A.C1_id = C.C_id
+        ORDER BY A.App_id
     """)
-    employees = cursor.fetchall()
-    headers = [desc[0] for desc in cursor.description]
+    appointments = cur.fetchall()
 
-    # 👥 Group employees by blood bank name
-    grouped_data = {}
-    for row in employees:
-        bb_name = row[0]
-        grouped_data.setdefault(bb_name, []).append(row[1:])
-
-    cursor.close()
+    cur.close()
     conn.close()
-
-    return render_template(
-        "employee.html",
-        headers=headers[1:],          # skip BB_name column
-        grouped_data=grouped_data,
-        bloodbanks=bloodbanks
-    )
+    return render_template("employee.html",
+                           bloodbanks=bloodbanks,
+                           donors=donors,
+                           customers=customers,
+                           appointments=appointments)
 
 
 # --------------------------------------------------------
@@ -242,13 +252,14 @@ def donor_dashboard():
         bb_id = request.form.get("BB3_id")
         try:
             cursor.execute("""
-                INSERT INTO Donor (D_name, D_contact, D_address, D_age, D_gender, D_history, BB3_id)
-                VALUES (:1, :2, :3, :4, :5, 0, :6)
+                INSERT INTO Donor (D_id, D_name, D_contact, D_address, D_age, D_gender, D_history, BB3_id)
+                VALUES (donor_seq.NEXTVAL, :1, :2, :3, :4, :5, 0, :6)
             """, (name, contact, address, age, gender, bb_id))
             conn.commit()
+            flash("✅ Donor added successfully!")
         except Exception as e:
             conn.rollback()
-            return f"<h3 style='color:red'>❌ Error adding donor: {e}</h3>"
+            flash(f"❌ Error adding donor: {e}")
 
     cursor.execute("SELECT * FROM Donor ORDER BY D_id")
     donors = [dict(zip([c[0] for c in cursor.description], row)) for row in cursor.fetchall()]
@@ -272,13 +283,14 @@ def appointment_dashboard():
         bb_id = request.form.get("BB2_id")
         try:
             cursor.execute("""
-                INSERT INTO Appointment (App_date, App_time, App_status, D1_id, BB2_id)
-                VALUES (TO_DATE(:1, 'YYYY-MM-DD'), SYSTIMESTAMP, :2, :3, :4)
+                INSERT INTO Appointment (App_id, App_date, App_time, App_status, D1_id, BB2_id)
+                VALUES (appointment_seq.NEXTVAL, TO_DATE(:1, 'YYYY-MM-DD'), SYSTIMESTAMP, :2, :3, :4)
             """, (date, status, donor, bb_id))
             conn.commit()
+            flash("✅ Appointment scheduled successfully!")
         except Exception as e:
             conn.rollback()
-            return f"<h3 style='color:red'>❌ Error scheduling appointment: {e}</h3>"
+            flash(f"❌ Error scheduling appointment: {e}")
 
     cursor.execute("SELECT * FROM Appointment ORDER BY App_id")
     apps = [dict(zip([c[0] for c in cursor.description], row)) for row in cursor.fetchall()]
@@ -303,61 +315,20 @@ def customer_dashboard():
         history = request.form.get("C_history")
         try:
             cursor.execute("""
-                INSERT INTO Customer (C_name, C_address, C_contact, C_gender, C_history)
-                VALUES (:1, :2, :3, :4, :5)
+                INSERT INTO Customer (C_id, C_name, C_address, C_contact, C_gender, C_history)
+                VALUES (customer_seq.NEXTVAL, :1, :2, :3, :4, :5)
             """, (name, address, contact, gender, history))
             conn.commit()
+            flash("✅ Customer added successfully!")
         except Exception as e:
             conn.rollback()
-            return f"<h3 style='color:red'>❌ Error adding customer: {e}</h3>"
+            flash(f"❌ Error adding customer: {e}")
 
     cursor.execute("SELECT * FROM Customer ORDER BY C_id")
     customers = [dict(zip([c[0] for c in cursor.description], row)) for row in cursor.fetchall()]
     cursor.close()
     conn.close()
     return render_template("customer.html", customers=customers)
-
-
-# --------------------------------------------------------
-# 🧾 ORDER DASHBOARD
-# --------------------------------------------------------
-@app.route("/order")
-def order_dashboard():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM Ord ORDER BY Or_id")
-    orders = [dict(zip([c[0] for c in cursor.description], row)) for row in cursor.fetchall()]
-    cursor.close()
-    conn.close()
-    return render_template("order.html", orders=orders)
-
-
-# --------------------------------------------------------
-# 💵 INVOICE DASHBOARD
-# --------------------------------------------------------
-@app.route("/invoice")
-def invoice_dashboard():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM Invoice ORDER BY In_id")
-    invoices = [dict(zip([c[0] for c in cursor.description], row)) for row in cursor.fetchall()]
-    cursor.close()
-    conn.close()
-    return render_template("invoice.html", invoices=invoices)
-
-
-# --------------------------------------------------------
-# 💳 TRANSACTION DASHBOARD
-# --------------------------------------------------------
-@app.route("/transaction")
-def transaction_dashboard():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM Transactionstab ORDER BY T_id")
-    txns = [dict(zip([c[0] for c in cursor.description], row)) for row in cursor.fetchall()]
-    cursor.close()
-    conn.close()
-    return render_template("transaction.html", txns=txns)
 
 
 # --------------------------------------------------------
@@ -391,8 +362,9 @@ def admin_dashboard():
         completed=completed
     )
 
+
 # --------------------------------------------------------
-# 🧭 ROLE SELECTION HANDLER
+# 🧭 ROLE SELECTION HANDLER (✅ FINAL ONE)
 # --------------------------------------------------------
 @app.route("/select_role", methods=["POST"])
 def select_role():
@@ -407,6 +379,7 @@ def select_role():
         "customer": "customer_dashboard"
     }
     return redirect(url_for(routes.get(role, "index")))
+
 
 # --------------------------------------------------------
 # 🚀 RUN APP

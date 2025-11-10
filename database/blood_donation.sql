@@ -75,21 +75,6 @@ CREATE TABLE Donor (
 );
 
 --------------------------------------------------------
--- APPOINTMENT TABLE
---------------------------------------------------------
-CREATE TABLE Appointment (
-    App_id     NUMBER(10),
-    App_date   DATE,
-    App_time   TIMESTAMP,
-    App_status VARCHAR2(10),
-    D1_id      NUMBER(10),
-    BB2_id     NUMBER(10),
-    PRIMARY KEY(App_id),
-    CONSTRAINT fk_appointment_donor FOREIGN KEY (D1_id) REFERENCES Donor(D_id),
-    CONSTRAINT fk_appointment_bloodbank FOREIGN KEY (BB2_id) REFERENCES Bloodbank(BB_id)
-);
-
---------------------------------------------------------
 -- CUSTOMER TABLE
 --------------------------------------------------------
 CREATE TABLE Customer (
@@ -101,6 +86,31 @@ CREATE TABLE Customer (
     C_history VARCHAR2(50),
     PRIMARY KEY(C_id)
 );
+
+
+--------------------------------------------------------
+-- APPOINTMENT TABLE (FINAL)
+--------------------------------------------------------
+CREATE TABLE Appointment (
+    App_id        NUMBER(10),
+    App_date      DATE DEFAULT SYSDATE,
+    App_time      TIMESTAMP DEFAULT SYSTIMESTAMP,
+    App_status    VARCHAR2(20) DEFAULT 'Pending',
+    D1_id         NUMBER(10),
+    BB2_id        NUMBER(10),
+    E2_id         NUMBER(10),
+    C1_id         NUMBER(10),
+    PRIMARY KEY (App_id),
+    CONSTRAINT fk_appointment_donor 
+        FOREIGN KEY (D1_id) REFERENCES Donor(D_id),
+    CONSTRAINT fk_appointment_bloodbank 
+        FOREIGN KEY (BB2_id) REFERENCES Bloodbank(BB_id),
+    CONSTRAINT fk_appointment_employee 
+        FOREIGN KEY (E2_id) REFERENCES Employee(E_id),
+    CONSTRAINT fk_appointment_customer 
+        FOREIGN KEY (C1_id) REFERENCES Customer(C_id)
+);
+
 
 --------------------------------------------------------
 -- ORDER TABLE
