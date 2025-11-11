@@ -187,17 +187,20 @@ def employee_dashboard():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # --- Add Appointment ---
+    # --- Schedule Appointment ---
     if request.method == "POST" and "D1_id" in request.form:
         cur.execute("""
-            INSERT INTO Appointment (App_id, App_date, D1_id, C1_id)
-            VALUES (appointment_seq.NEXTVAL, TO_DATE(:1, 'YYYY-MM-DD'), :2, :3)
+            INSERT INTO Appointment (App_id, App_date, App_status, D1_id, C1_id, E2_id, BB2_id)
+            VALUES (appointment_seq.NEXTVAL, TO_DATE(:1, 'YYYY-MM-DD'), 'Pending', :2, :3, :4, :5)
         """, [
             request.form["App_date"],
             request.form["D1_id"],
-            request.form["C1_id"]
+            request.form["C1_id"],
+            request.form["E2_id"],
+            request.form["BB2_id"]
         ])
         conn.commit()
+        flash("✅ Appointment scheduled successfully!")
 
     # --- Update Status ---
     if request.method == "POST" and "App_status" in request.form:
@@ -205,23 +208,29 @@ def employee_dashboard():
             UPDATE Appointment SET App_status = :1 WHERE App_id = :2
         """, [request.form["App_status"], request.form["App_id"]])
         conn.commit()
+        flash("✅ Appointment marked completed!")
 
     # --- Fetch dropdown data ---
-    cur.execute("SELECT BB_id, BB_name FROM Bloodbank")
+    cur.execute("SELECT E_id, E_name, BB1_id FROM Employee ORDER BY E_id")
+    employees = cur.fetchall()
+
+    cur.execute("SELECT BB_id, BB_name FROM Bloodbank ORDER BY BB_id")
     bloodbanks = cur.fetchall()
 
-    cur.execute("SELECT D_id, D_name, D_contact FROM Donor")
+    cur.execute("SELECT D_id, D_name, D_contact FROM Donor ORDER BY D_id")
     donors = cur.fetchall()
 
-    cur.execute("SELECT C_id, C_name, C_contact FROM Customer")
+    cur.execute("SELECT C_id, C_name, C_contact FROM Customer ORDER BY C_id")
     customers = cur.fetchall()
 
     # --- Fetch appointments ---
     cur.execute("""
-        SELECT A.App_id, D.D_name, C.C_name, A.App_date, A.App_status
+        SELECT A.App_id, D.D_name, C.C_name, B.BB_name, E.E_name, A.App_date, A.App_status
         FROM Appointment A
         JOIN Donor D ON A.D1_id = D.D_id
         JOIN Customer C ON A.C1_id = C.C_id
+        JOIN Employee E ON A.E2_id = E.E_id
+        JOIN Bloodbank B ON A.BB2_id = B.BB_id
         ORDER BY A.App_id
     """)
     appointments = cur.fetchall()
@@ -229,6 +238,7 @@ def employee_dashboard():
     cur.close()
     conn.close()
     return render_template("employee.html",
+                           employees=employees,
                            bloodbanks=bloodbanks,
                            donors=donors,
                            customers=customers,
