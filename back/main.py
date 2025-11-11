@@ -4,9 +4,6 @@ import oracledb
 # --------------------------------------------------------
 # ⚙️ ORACLE CONNECTION
 # --------------------------------------------------------
-# Uncomment if you have Oracle Instant Client installed
-# oracledb.init_oracle_client(lib_dir=r"C:\\instantclient_21_12")
-
 app = Flask(__name__, template_folder="../front")
 app.static_folder = "../front"
 app.secret_key = "supersecretkey"
@@ -235,6 +232,16 @@ def employee_dashboard():
     """)
     appointments = cur.fetchall()
 
+    # --- Fetch Pending Orders ---
+    cur.execute("""
+        SELECT o.Or_id, c.C_name, o.Or_type, o.Or_quantity, o.Or_status
+        FROM Ord o
+        JOIN Customer c ON o.C2_id = c.C_id
+        WHERE o.Or_status = 'Pending'
+        ORDER BY o.Or_id
+    """)
+    orders = cur.fetchall()
+
     cur.close()
     conn.close()
     return render_template("employee.html",
@@ -242,8 +249,8 @@ def employee_dashboard():
                            bloodbanks=bloodbanks,
                            donors=donors,
                            customers=customers,
-                           appointments=appointments)
-
+                           appointments=appointments,
+                           orders=orders)
 
 # --------------------------------------------------------
 # 🧍 DONOR DASHBOARD
@@ -277,36 +284,34 @@ def donor_dashboard():
     conn.close()
     return render_template("donor.html", donors=donors)
 
-
 # --------------------------------------------------------
-# 📅 APPOINTMENT DASHBOARD
+# 🧾 CREATE INVOICE FROM EMPLOYEE SIDE
 # --------------------------------------------------------
-@app.route("/appointment", methods=["GET", "POST"])
-def appointment_dashboard():
+@app.route("/create_invoice", methods=["POST"])
+def create_invoice():
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cur = conn.cursor()
+    try:
+        order_id = request.form.get("Or_id")
+        price_chart = {"A+": 25, "B+": 25, "AB+": 30, "O+": 20, "O-": 35}
 
-    if request.method == "POST":
-        date = request.form.get("App_date")
-        status = request.form.get("App_status")
-        donor = request.form.get("D1_id")
-        bb_id = request.form.get("BB2_id")
-        try:
-            cursor.execute("""
-                INSERT INTO Appointment (App_id, App_date, App_time, App_status, D1_id, BB2_id)
-                VALUES (appointment_seq.NEXTVAL, TO_DATE(:1, 'YYYY-MM-DD'), SYSTIMESTAMP, :2, :3, :4)
-            """, (date, status, donor, bb_id))
-            conn.commit()
-            flash("✅ Appointment scheduled successfully!")
-        except Exception as e:
-            conn.rollback()
-            flash(f"❌ Error scheduling appointment: {e}")
+        cur.execute("SELECT Or_quantity, Or_type FROM Ord WHERE Or_id = :1", [order_id])
+        qty, btype = cur.fetchone()
+        total = qty * price_chart.get(btype, 25)
 
-    cursor.execute("SELECT * FROM Appointment ORDER BY App_id")
-    apps = [dict(zip([c[0] for c in cursor.description], row)) for row in cursor.fetchall()]
-    cursor.close()
-    conn.close()
-    return render_template("appointment.html", appointments=apps)
+        cur.execute("""
+            INSERT INTO Invoice (In_date, In_time, In_amount, In_status, Or1_id)
+            VALUES (SYSDATE, SYSTIMESTAMP, :1, 'Generated', :2)
+        """, (total, order_id))
+        conn.commit()
+        flash(f"✅ Invoice created for Order #{order_id} | ₹{total}")
+    except Exception as e:
+        conn.rollback()
+        flash(f"❌ Error creating invoice: {e}")
+    finally:
+        cur.close()
+        conn.close()
+    return redirect(url_for("employee_dashboard"))
 
 
 # --------------------------------------------------------
@@ -342,6 +347,73 @@ def customer_dashboard():
 
 
 # --------------------------------------------------------
+# 💉 CUSTOMER CREATES BLOOD REQUEST
+# --------------------------------------------------------
+@app.route("/create_order", methods=["POST"])
+def create_order():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        c_id = request.form.get("C2_id")
+        bb_id = request.form.get("BB4_id")
+        btype = request.form.get("Or_type")
+        quantity = float(request.form.get("Or_quantity"))
+
+        cur.execute("""
+            INSERT INTO Ord (Or_date, Or_time, Or_quantity, Or_status, Or_type, C2_id, BB4_id)
+            VALUES (SYSDATE, SYSTIMESTAMP, :1, 'Pending', :2, :3, :4)
+        """, (quantity, btype, c_id, bb_id))
+        conn.commit()
+        flash("🩸 Blood request sent to Blood Bank successfully!")
+    except Exception as e:
+        conn.rollback()
+        flash(f"❌ Error creating order: {e}")
+    finally:
+        cur.close()
+        conn.close()
+    return redirect(url_for("customer_dashboard"))
+
+# --------------------------------------------------------
+# 💳 CUSTOMER MAKES PAYMENT (FOR INVOICE)
+# --------------------------------------------------------
+@app.route("/make_payment", methods=["POST"])
+def make_payment():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        order_id = request.form.get("Or1_id")
+        amount = float(request.form.get("amount"))
+        method = request.form.get("method")
+
+        # ✅ Insert into Transactionstab
+        cur.execute("""
+            INSERT INTO Transactionstab (Tr_date, Tr_time, Tr_amount, Tr_method, Or2_id)
+            VALUES (SYSDATE, SYSTIMESTAMP, :1, :2, :3)
+        """, (amount, method, order_id))
+
+        # ✅ Update Invoice status to 'Paid'
+        cur.execute("""
+            UPDATE Invoice SET In_status = 'Paid' WHERE Or1_id = :1
+        """, [order_id])
+
+        # ✅ Update Order status as 'Completed'
+        cur.execute("""
+            UPDATE Ord SET Or_status = 'Completed' WHERE Or_id = :1
+        """, [order_id])
+
+        conn.commit()
+        flash(f"✅ Payment of ₹{amount} successful for Order #{order_id}!")
+
+    except Exception as e:
+        conn.rollback()
+        flash(f"❌ Error processing payment: {e}")
+    finally:
+        cur.close()
+        conn.close()
+    return redirect(url_for("customer_dashboard"))
+
+
+# --------------------------------------------------------
 # 🧮 ADMIN DASHBOARD
 # --------------------------------------------------------
 @app.route("/admin")
@@ -374,7 +446,7 @@ def admin_dashboard():
 
 
 # --------------------------------------------------------
-# 🧭 ROLE SELECTION HANDLER (✅ FINAL ONE)
+# 🧭 ROLE SELECTION HANDLER
 # --------------------------------------------------------
 @app.route("/select_role", methods=["POST"])
 def select_role():
@@ -389,6 +461,82 @@ def select_role():
         "customer": "customer_dashboard"
     }
     return redirect(url_for(routes.get(role, "index")))
+
+# --------------------------------------------------------
+# 💳 ORDER PAYMENT PAGE (GET + POST)
+# --------------------------------------------------------
+@app.route("/order_payment", methods=["GET", "POST"])
+def order_payment():
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    if request.method == "POST":
+        order_id = request.form.get("order_id")
+        payment_mode = request.form.get("T_mode")
+
+        # 💰 Pricing chart
+        price_chart = {"A+": 25, "B+": 25, "AB+": 30, "O+": 20, "O-": 35}
+
+        try:
+            # 1️⃣ Fetch order details
+            cur.execute("""
+                SELECT Or_id, Or_type, Or_quantity, Or_status
+                FROM Ord WHERE Or_id = :1
+            """, [order_id])
+            order = cur.fetchone()
+
+            if not order:
+                flash("❌ Invalid Order ID.")
+                return redirect(url_for("order_payment"))
+
+            or_id, or_type, or_quantity, or_status = order
+
+            if or_status == "Paid":
+                flash("⚠️ This order is already paid.")
+                return redirect(url_for("order_payment"))
+
+            # 2️⃣ Calculate total amount
+            total = float(or_quantity) * price_chart.get(or_type, 25)
+
+            # 3️⃣ Create invoice
+            cur.execute("""
+                INSERT INTO Invoice (In_id, In_date, In_time, In_amount, In_status, Or1_id)
+                VALUES (invoice_seq.NEXTVAL, SYSDATE, SYSTIMESTAMP, :1, 'Paid', :2)
+            """, (total, or_id))
+
+            # 4️⃣ Create transaction
+            cur.execute("""
+                INSERT INTO Transactionstab (T_id, T_date, T_time, T_mode, T_status, In1_id)
+                VALUES (transaction_seq.NEXTVAL, SYSDATE, SYSTIMESTAMP, :1, 'Success', invoice_seq.CURRVAL)
+            """, [payment_mode])
+
+            # 5️⃣ Update order status
+            cur.execute("""
+                UPDATE Ord SET Or_status = 'Paid' WHERE Or_id = :1
+            """, [order_id])
+
+            conn.commit()
+            flash(f"✅ Payment successful! ₹{total} paid for Order #{order_id} via {payment_mode}.")
+
+        except Exception as e:
+            conn.rollback()
+            flash(f"❌ Error during payment: {e}")
+
+    # 6️⃣ Display all orders + invoices + transactions
+    cur.execute("""
+        SELECT o.Or_id, o.Or_type, o.Or_quantity, o.Or_status,
+               i.In_id, i.In_amount, t.T_mode, t.T_status
+        FROM Ord o
+        LEFT JOIN Invoice i ON i.Or1_id = o.Or_id
+        LEFT JOIN Transactionstab t ON t.In1_id = i.In_id
+        ORDER BY o.Or_id
+    """)
+    records = cur.fetchall()
+    headers = [desc[0] for desc in cur.description]
+
+    cur.close()
+    conn.close()
+    return render_template("order_payment.html", headers=headers, records=records)
 
 
 # --------------------------------------------------------

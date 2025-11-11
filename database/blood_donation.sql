@@ -116,20 +116,21 @@ CREATE TABLE Appointment (
 -- ORDER TABLE
 --------------------------------------------------------
 CREATE TABLE Ord (
-    Or_id       NUMBER(10),
-    Or_date     DATE,
-    Or_time     TIMESTAMP,
+    Or_id NUMBER(10),
+    Or_date DATE,
+    Or_time TIMESTAMP,
     Or_quantity NUMBER(10),
-    Or_status   VARCHAR2(10),
-    Or_type     VARCHAR2(3),
-    C2_id       NUMBER(10),
-    Hs2_id      NUMBER(10),
-    BB4_id      NUMBER(10),
+    Or_status VARCHAR2(10),
+    Or_type VARCHAR2(3),
+    C2_id NUMBER(10),
+    Hs2_id NUMBER(10),
+    BB4_id NUMBER(10),
     PRIMARY KEY(Or_id),
     CONSTRAINT fk_orders_customer FOREIGN KEY (C2_id) REFERENCES Customer(C_id),
     CONSTRAINT fk_orders_hospital FOREIGN KEY (Hs2_id) REFERENCES Hospital(Hs_id),
     CONSTRAINT fk_orders_bloodbank FOREIGN KEY (BB4_id) REFERENCES Bloodbank(BB_id)
 );
+
 
 --------------------------------------------------------
 -- INVOICE TABLE
