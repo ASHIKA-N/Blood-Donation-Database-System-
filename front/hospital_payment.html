@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hospital Payment - ARYAMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container py-5">
+
+  <h2 class="text-center text-danger fw-bold mb-4">🏦 Hospital Payment Portal</h2>
+
+  <form method="POST" class="card p-4 shadow-sm border-0 rounded-4 mb-4">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Invoice ID</label>
+        <input name="In_id" type="number" class="form-control" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Amount (₹)</label>
+        <input name="amount" type="number" class="form-control" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Payment Mode</label>
+        <select name="method" class="form-select" required>
+          <option value="UPI">UPI</option>
+          <option value="Card">Card</option>
+          <option value="Cash">Cash</option>
+        </select>
+      </div>
+    </div>
+    <div class="text-center mt-4">
+      <button class="btn btn-danger px-4">Pay Now</button>
+    </div>
+  </form>
+
+  <h4 class="text-center text-danger mb-3 fw-bold">🧾 Generated Invoices</h4>
+  <table class="table table-bordered table-striped shadow-sm text-center">
+    <thead class="table-dark">
+      <tr>
+        {% for h in headers %}
+          <th>{{h}}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for i in invoices %}
+      <tr>
+        {% for val in i %}
+          <td>{{val}}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+      {% if not invoices %}
+      <tr><td colspan="5" class="text-muted">No invoices found.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <div class="text-center mt-4">
+    <a href="/" class="btn btn-outline-dark px-5">⬅ Back to Home</a>
+  </div>
+
+</div>
+</body>
+</html>

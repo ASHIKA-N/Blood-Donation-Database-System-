@@ -1,11 +1,71 @@
 {% extends "base.html" %}
 {% block content %}
-<h3 class="text-danger text-center mb-4">📊 ADMIN DASHBOARD</h3>
-<div class="row text-center">
-  <div class="col-md-3"><div class="card p-3"><h5>Total Donors</h5><h2 class="text-danger">{{ donors }}</h2></div></div>
-  <div class="col-md-3"><div class="card p-3"><h5>Total Hospitals</h5><h2 class="text-danger">{{ hospitals }}</h2></div></div>
-  <div class="col-md-3"><div class="card p-3"><h5>Total Blood Units</h5><h2 class="text-danger">{{ volume }}</h2></div></div>
-  <div class="col-md-3"><div class="card p-3"><h5>Completed Donations</h5><h2 class="text-danger">{{ completed }}</h2></div></div>
+
+<div class="container py-5">
+  <h2 class="text-danger text-center fw-bold mb-5">📊 ADMIN DASHBOARD</h2>
+
+  <!-- STAT CARDS -->
+  <div class="row text-center g-4">
+
+    <!-- 🩸 Total Donors -->
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 rounded-4 p-4">
+        <h5 class="fw-semibold text-secondary">Total Donors</h5>
+        <h2 class="text-danger fw-bold mt-2">{{ donors }}</h2>
+      </div>
+    </div>
+
+    <!-- 🏥 Total Hospitals -->
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 rounded-4 p-4">
+        <h5 class="fw-semibold text-secondary">Total Hospitals</h5>
+        <h2 class="text-danger fw-bold mt-2">{{ hospitals }}</h2>
+      </div>
+    </div>
+
+    <!-- 🧪 Total Blood Units -->
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 rounded-4 p-4">
+        <h5 class="fw-semibold text-secondary">Total Blood Units</h5>
+        <h2 class="text-danger fw-bold mt-2">{{ volume }}</h2>
+      </div>
+    </div>
+
+    <!-- ✅ Completed Donations -->
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 rounded-4 p-4">
+        <h5 class="fw-semibold text-secondary">Completed Donations</h5>
+        <h2 class="text-danger fw-bold mt-2">{{ completed }}</h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTION BUTTONS -->
+  <div class="text-center mt-5">
+    <a href="/history" class="btn btn-danger mt-4">🕓 View Donation History</a>
+
+    <a href="/" class="btn btn-outline-dark btn-lg px-5 py-3 rounded-4 shadow-sm">
+      ⬅ Back to Home
+    </a>
+  </div>
 </div>
-<a href="/" class="btn btn-danger mt-4">⬅ Back Home</a>
+
+<!-- Optional Styling -->
+<style>
+  .card {
+    transition: all 0.3s ease;
+  }
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 1.5rem 2rem rgba(220, 53, 69, 0.15);
+  }
+  h2 {
+    font-size: 2.5rem;
+  }
+  @media (max-width: 768px) {
+    .card h2 { font-size: 2rem; }
+  }
+</style>
+
 {% endblock %}
+

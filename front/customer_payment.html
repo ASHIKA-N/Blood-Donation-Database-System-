@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>💳 Customer Payment - ARYAMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container py-5">
+
+  <h2 class="text-center text-danger mb-4">💳 Customer Invoice Payment</h2>
+
+  <form method="POST" class="card p-4 shadow-sm mb-5">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Invoice ID</label>
+        <input type="number" name="In_id" class="form-control" placeholder="Enter Invoice ID" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Amount (₹)</label>
+        <input type="number" name="amount" class="form-control" placeholder="Enter Amount" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Payment Method</label>
+        <select name="method" class="form-select" required>
+          <option value="">-- Select --</option>
+          <option value="UPI">UPI</option>
+          <option value="Card">Card</option>
+          <option value="NetBanking">Net Banking</option>
+          <option value="Cash">Cash</option>
+        </select>
+      </div>
+      <div class="text-center mt-3">
+        <button class="btn btn-danger px-5 py-2">Pay Now</button>
+      </div>
+    </div>
+  </form>
+
+  <h4 class="text-center text-danger mb-3 fw-bold">🧾 All Customer Invoices</h4>
+  <table class="table table-bordered table-striped shadow-sm text-center">
+    <thead class="table-danger">
+      <tr>
+        {% for h in headers %}
+          <th>{{ h }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for i in invoices %}
+      <tr>
+        {% for v in i %}
+          <td>{{ v }}</td>
+        {% endfor %}
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-muted">No invoices found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="text-center mt-4">
+    <a href="/" class="btn btn-outline-dark">⬅ Back to Home</a>
+  </div>
+
+</div>
+</body>
+</html>

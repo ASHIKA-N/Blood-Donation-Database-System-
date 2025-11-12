@@ -133,31 +133,35 @@
   <table class="table table-bordered text-center fs-5 align-middle">
     <thead class="table-danger">
       <tr>
-        <th>Order ID</th>
-        <th>Customer Name</th>
-        <th>Blood Type</th>
-        <th>Quantity (ml)</th>
-        <th>Status</th>
-        <th>Action</th>
-      </tr>
+  <th>Order ID</th>
+  <th>Requester</th>
+  <th>Blood Bank</th>
+  <th>Blood Type</th>
+  <th>Quantity</th>
+  <th>Status</th>
+  <th>Action</th>
+</tr>
+
     </thead>
     <tbody>
-      {% for o in orders %}
-      <tr>
-        <td>{{ o[0] }}</td>
-        <td>{{ o[1] }}</td>
-        <td>{{ o[2] }}</td>
-        <td>{{ o[3] }}</td>
-        <td>{{ o[4] }}</td>
-        <td>
-          <form method="POST" action="/create_invoice">
-            <input type="hidden" name="Or_id" value="{{ o[0] }}">
-            <button class="btn btn-danger btn-lg">Generate Invoice</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
+  {% for o in orders %}
+  <tr>
+    <td>{{ o[0] }}</td>
+    <td>{{ o[1] }}</td>
+    <td>{{ o[2] }}</td>
+    <td>{{ o[3] }}</td>
+    <td>{{ o[4] }}</td>
+    <td>{{ o[5] }}</td>
+    <td>
+      <form method="POST" action="/create_invoice" class="d-inline">
+        <input type="hidden" name="Or_id" value="{{ o[0] }}">
+        <button class="btn btn-danger btn-lg px-4 py-2 fs-5">Generate Invoice</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+
   </table>
 </div>
 

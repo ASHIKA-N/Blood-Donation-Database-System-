@@ -1,10 +1,45 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container mt-4">
-  <h3 class="text-center text-danger mb-4">FOUNDATION DETAILS</h3>
-  
-  <table class="table table-bordered table-striped shadow-sm">
-    <thead class="table-dark text-center">
+
+  <h2 class="text-center text-danger mb-4 fw-bold">🏢 FOUNDATION DASHBOARD</h2>
+
+  <!-- 🔹 ADD FOUNDATION FORM -->
+  <form method="POST" action="/foundation" class="card shadow-sm p-4 mb-5 border-0 rounded-4">
+    <h4 class="text-danger fw-bold mb-3 text-center">➕ Add New Foundation</h4>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Foundation Name</label>
+        <input type="text" name="F_name" class="form-control border-danger-subtle" placeholder="Enter Foundation Name" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Contact</label>
+        <input type="number" name="F_contact" class="form-control border-danger-subtle" placeholder="Enter Contact Number" required>
+      </div>
+
+      <div class="col-md-12">
+        <label class="form-label fw-semibold">Address</label>
+        <textarea name="F_address" class="form-control border-danger-subtle" rows="2" placeholder="Enter Address" required></textarea>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Email</label>
+        <input type="email" name="F_email" class="form-control border-danger-subtle" placeholder="Enter Email ID" required>
+      </div>
+
+      <div class="col-md-12 text-center mt-3">
+        <button type="submit" class="btn btn-danger px-5 py-2 fw-semibold">Add Foundation</button>
+      </div>
+    </div>
+  </form>
+
+  <!-- 🔹 EXISTING FOUNDATIONS -->
+  <h4 class="text-danger fw-bold mb-3 text-center">🏛 Existing Foundations</h4>
+
+  <table class="table table-bordered table-striped shadow-sm text-center">
+    <thead class="table-danger">
       <tr>
         {% for h in headers %}
           <th>{{ h }}</th>
@@ -13,18 +48,34 @@
     </thead>
     <tbody>
       {% for row in data %}
-      <tr class="text-center">
+      <tr>
         {% for c in row %}
           <td>{{ c }}</td>
         {% endfor %}
       </tr>
       {% endfor %}
+      {% if not data %}
+      <tr><td colspan="{{ headers|length }}" class="text-muted">No foundation records found.</td></tr>
+      {% endif %}
     </tbody>
   </table>
 
-  <div class="text-center mt-3">
-    <a href="/" class="btn btn-danger">⬅ Back to Home</a>
+  <div class="text-center mt-4">
+    <a href="/" class="btn btn-outline-dark px-5 py-2">⬅ Back to Home</a>
   </div>
+
 </div>
+
+<!-- Optional: Flash message display -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="container mt-4">
+      {% for message in messages %}
+        <div class="alert alert-info text-center fw-semibold">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
 {% endblock %}
+
 

@@ -159,6 +159,24 @@ CREATE TABLE Transactionstab (
     PRIMARY KEY(T_id),
     CONSTRAINT fk_transaction_invoice FOREIGN KEY (In1_id) REFERENCES Invoice(In_id)
 );
+CREATE TABLE History (
+    H_id          NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    D_name        VARCHAR2(50),
+    D_contact     VARCHAR2(15),
+    D_address     VARCHAR2(255),
+    D_gender      VARCHAR2(10),
+    D_age         NUMBER(3),
+    C_name        VARCHAR2(50),
+    C_contact     VARCHAR2(15),
+    C_address     VARCHAR2(255),
+    Hs_name       VARCHAR2(50),
+    Hs_contact    VARCHAR2(15),
+    Hs_address    VARCHAR2(255),
+    Donation_date DATE,
+    Archived_on   TIMESTAMP DEFAULT SYSTIMESTAMP
+);
+
+
 
 COMMIT;
 /
