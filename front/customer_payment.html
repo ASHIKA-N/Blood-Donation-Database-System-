@@ -13,13 +13,27 @@
   <form method="POST" class="card p-4 shadow-sm mb-5">
     <div class="row g-3">
       <div class="col-md-4">
-        <label class="form-label fw-semibold">Invoice ID</label>
-        <input type="number" name="In_id" class="form-control" placeholder="Enter Invoice ID" required>
+
+        <!-- INVOICE ID -->
+        <label>Invoice ID</label>
+        <input type="number" 
+               id="invoiceInput" 
+               name="In_id"
+               class="form-control"
+               onkeydown="checkEnter(event)"
+               required>
+
+        <!-- AMOUNT AUTO FILLED -->
+        <label class="mt-3">Amount</label>
+        <input type="text" 
+               id="amountInput" 
+               name="amount"
+               class="form-control"
+               readonly>
+
       </div>
-      <div class="col-md-4">
-        <label class="form-label fw-semibold">Amount (₹)</label>
-        <input type="number" name="amount" class="form-control" placeholder="Enter Amount" required>
-      </div>
+
+      <!-- PAYMENT METHOD -->
       <div class="col-md-4">
         <label class="form-label fw-semibold">Payment Method</label>
         <select name="method" class="form-select" required>
@@ -30,12 +44,16 @@
           <option value="Cash">Cash</option>
         </select>
       </div>
+
+      <!-- BUTTON -->
       <div class="text-center mt-3">
         <button class="btn btn-danger px-5 py-2">Pay Now</button>
       </div>
+
     </div>
   </form>
 
+  <!-- INVOICE TABLE -->
   <h4 class="text-center text-danger mb-3 fw-bold">🧾 All Customer Invoices</h4>
   <table class="table table-bordered table-striped shadow-sm text-center">
     <thead class="table-danger">
@@ -63,5 +81,33 @@
   </div>
 
 </div>
+
+<!-- JAVASCRIPT -->
+<script>
+function checkEnter(event) {
+    if (event.key === "Enter") {
+        event.preventDefault();  // Stop form submission
+        fetchAmount();
+    }
+}
+
+function fetchAmount() {
+    let invoiceId = document.getElementById("invoiceInput").value.trim();
+
+    if (invoiceId === "") return;
+
+    fetch("/get_invoice_amount/" + invoiceId)
+        .then(res => res.json())
+        .then(data => {
+            if (data.amount !== null) {
+                document.getElementById("amountInput").value = data.amount;
+            } else {
+                document.getElementById("amountInput").value = "";
+                alert("❌ Invoice ID does not exist!");
+            }
+        });
+}
+</script>
+
 </body>
 </html>

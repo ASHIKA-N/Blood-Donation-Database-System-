@@ -10,124 +10,31 @@
 <div class="container py-5">
 
   <!-- 🩸 CUSTOMER REGISTRATION -->
-  <h2 class="text-center text-danger mb-4 fw-bold">🩸 Customer Registration</h2>
+ <h2 class="text-center text-danger mt-5">Customer Records (View Only)</h2>
+<p class="text-center text-muted">Customers are auto-created when hospitals request blood.</p>
 
-  <form method="POST" action="/customer" class="card p-4 shadow-sm mb-5">
-    <div class="row g-3">
-      <div class="col-md-6">
-        <label class="form-label fw-semibold">Name</label>
-        <input name="C_name" class="form-control" required>
-      </div>
+<table class="table table-bordered mt-4">
+  <thead class="table-danger">
+    <tr>
+      <th>ID</th><th>Name</th><th>Contact</th><th>Gender</th><th>History</th><th>Address</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in customers %}
+    <tr>
+      <td>{{ c.C_ID }}</td>
+      <td>{{ c.C_NAME }}</td>
+      <td>{{ c.C_CONTACT }}</td>
+      <td>{{ c.C_GENDER }}</td>
+      <td>{{ c.C_HISTORY }}</td>
+      <td>{{ c.C_ADDRESS }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
-      <div class="col-md-6">
-        <label class="form-label fw-semibold">Contact</label>
-        <input name="C_contact" class="form-control" required>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label fw-semibold">Gender</label>
-        <select name="C_gender" class="form-select" required>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label fw-semibold">Medical History</label>
-        <input name="C_history" class="form-control">
-      </div>
-
-      <div class="col-12">
-        <label class="form-label fw-semibold">Address</label>
-        <textarea name="C_address" class="form-control" rows="2"></textarea>
-      </div>
-
-      <div class="text-center mt-3">
-        <button class="btn btn-danger px-5 py-2 fw-semibold">Add Customer</button>
-      </div>
-    </div>
-  </form>
-
-  <!-- 👥 EXISTING CUSTOMERS -->
-  <h4 class="text-center mb-3 text-danger fw-bold">Existing Customers</h4>
-  <table class="table table-bordered table-striped shadow-sm">
-    <thead class="table-danger text-center">
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Contact</th>
-        <th>Gender</th>
-        <th>History</th>
-        <th>Address</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for c in customers %}
-      <tr>
-        <td>{{ c.C_ID }}</td>
-        <td>{{ c.C_NAME }}</td>
-        <td>{{ c.C_CONTACT }}</td>
-        <td>{{ c.C_GENDER }}</td>
-        <td>{{ c.C_HISTORY }}</td>
-        <td>{{ c.C_ADDRESS }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <!-- 💉 BLOOD REQUEST FORM -->
-  <h3 class="text-center text-danger fw-bold mt-5 mb-4">💉 Request Blood from Blood Bank</h3>
-  <form method="POST" action="/create_order" class="card p-4 shadow-sm mb-5">
-    <div class="row g-3">
-      <div class="col-md-6">
-        <label class="form-label fw-semibold">Customer ID</label>
-        <input name="C2_id" type="number" class="form-control" placeholder="Enter your Customer ID" required>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label fw-semibold">Blood Bank ID</label>
-        <input name="BB4_id" type="number" class="form-control" placeholder="Enter Blood Bank ID" required>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label fw-semibold">Blood Type</label>
-        <select name="Or_type" class="form-select" required>
-          <option value="">-- Select Type --</option>
-          <option value="A+">A+</option>
-          <option value="A-">A-</option>
-          <option value="B+">B+</option>
-          <option value="B-">B-</option>
-          <option value="AB+">AB+</option>
-          <option value="AB-">AB-</option>
-          <option value="O+">O+</option>
-          <option value="O-">O-</option>
-        </select>
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label fw-semibold">Quantity (ml)</label>
-        <input name="Or_quantity" type="number" class="form-control" placeholder="Enter quantity in ml" required>
-      </div>
-
-      <div class="text-center mt-4">
-        <button class="btn btn-danger px-5 py-2 fw-semibold">Request Blood</button>
-      </div>
-    </div>
-  </form>
-
-  <!-- 💳 PAYMENT SECTION -->
-  <div class="text-center mt-4">
-  <a href="/customer_payment" class="btn btn-outline-danger px-4 py-2 fs-5">
-    💳 Go to Payment Page
-  </a>
-</div>
-
-
-  <!-- ⬅ BACK -->
-  <div class="text-center mt-4">
-    <a href="/" class="btn btn-outline-dark px-4 py-2">⬅ Back to Home</a>
-  </div>
-
+<div class="text-center mt-4">
+  <a href="/" class="btn btn-outline-dark">⬅ Back to Home</a>
 </div>
 
 <!-- 🌈 Custom Styling -->

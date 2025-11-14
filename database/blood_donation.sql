@@ -27,19 +27,31 @@ CREATE TABLE Hospital (
 --------------------------------------------------------
 -- BLOOD BANK TABLE
 --------------------------------------------------------
+DROP TABLE Bloodbank CASCADE CONSTRAINTS;
+
 CREATE TABLE Bloodbank (
     BB_id      NUMBER(10),
-    BB_name    VARCHAR2(15),
+    BB_name    VARCHAR2(50),
     BB_address VARCHAR2(255),
     BB_contact NUMBER(10),
-    BB_volume  NUMBER(5),
-    BB_type    VARCHAR2(2),
-    Hs1_id     NUMBER(10),
+    BB_volume  NUMBER(10),
     F2_id      NUMBER(10),
     PRIMARY KEY(BB_id),
-    CONSTRAINT fk_bloodbank_foundation FOREIGN KEY (F2_id) REFERENCES Foundation(F_id),
-    CONSTRAINT fk_bloodbank_hospital FOREIGN KEY (Hs1_id) REFERENCES Hospital(Hs_id)
+    CONSTRAINT fk_bloodbank_foundation
+        FOREIGN KEY (F2_id)
+        REFERENCES Foundation(F_id)
 );
+
+CREATE TABLE BloodStock (
+    BS_id      NUMBER(10) PRIMARY KEY,
+    BB_id      NUMBER(10),           -- blood bank
+    Blood_type VARCHAR2(5),          -- A+, O-, AB+, etc.
+    Quantity   NUMBER(10),           -- available units (ml)
+    CONSTRAINT fk_stock_bloodbank
+        FOREIGN KEY (BB_id)
+        REFERENCES Bloodbank(BB_id)
+);
+
 
 --------------------------------------------------------
 -- EMPLOYEE TABLE

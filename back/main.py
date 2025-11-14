@@ -125,39 +125,55 @@ def hospital_dashboard():
 def hospital_order():
     conn = get_db_connection()
     cur = conn.cursor()
+
     try:
+        # ---------- 1) Read hospital + patient details ----------
         hs_id = request.form.get("Hs2_id")
-        c_id = request.form.get("C2_id")
+        c_name = request.form.get("C_name")
+        c_contact = request.form.get("C_contact")
+        c_gender = request.form.get("C_gender")
+        c_address = request.form.get("C_address")
+
         bb_id = request.form.get("BB4_id")
         btype = request.form.get("Or_type")
         qty = float(request.form.get("Or_quantity"))
 
+        # ---------- 2) Auto-create Customer ----------
+        cur.execute("SELECT customer_seq.NEXTVAL FROM dual")
+        new_cid = cur.fetchone()[0]
+
+        cur.execute("""
+            INSERT INTO Customer (
+                C_id, C_name, C_contact, C_gender, C_address
+            ) VALUES (:1, :2, :3, :4, :5)
+        """, (new_cid, c_name, c_contact, c_gender, c_address))
+
+        # ---------- 3) Create Order with this Customer ----------
         cur.execute("SELECT order_seq.NEXTVAL FROM dual")
         order_id = cur.fetchone()[0]
 
-        cur.execute(
-            """
+        cur.execute("""
             INSERT INTO Ord (
                 Or_id, Or_date, Or_time, Or_quantity,
                 Or_status, Or_type, C2_id, Hs2_id, BB4_id
             )
             VALUES (:1, SYSDATE, SYSTIMESTAMP, :2,
                     'Pending', :3, :4, :5, :6)
-            """,
-            (order_id, qty, btype, c_id, hs_id, bb_id),
-        )
+        """, (order_id, qty, btype, new_cid, hs_id, bb_id))
 
         conn.commit()
-        flash(f"✅ Order #{order_id} placed successfully! Pending at Employee side.")
+        flash(f"✅ Blood Order #{order_id} placed! Customer #{new_cid} created automatically.")
 
     except Exception as e:
         conn.rollback()
-        flash(f"❌ Error placing hospital order: {e}")
+        flash(f"❌ Error placing order: {e}")
+
     finally:
         cur.close()
         conn.close()
 
     return redirect(url_for("hospital_dashboard"))
+
 
 
 # --------------------------------------------------------
@@ -327,49 +343,53 @@ def add_employee():
 
 
 # --------------------------------------------------------
-# EMPLOYEE DASHBOARD
+# EMPLOYEE DASHBOARD (FULL WORKING FINAL VERSION)
 # --------------------------------------------------------
 @app.route("/employee", methods=["GET", "POST"])
 def employee_dashboard():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # 1) Schedule Appointment
+    # ======================================================
+    # 1️⃣ Schedule Appointment
+    # ======================================================
     if request.method == "POST" and "D1_id" in request.form:
-        cur.execute(
-            """
+        cur.execute("""
             INSERT INTO Appointment (App_id, App_date, App_status,
                                      D1_id, C1_id, E2_id, BB2_id)
-            VALUES (appointment_seq.NEXTVAL, TO_DATE(:1, 'YYYY-MM-DD'),
+            VALUES (appointment_seq.NEXTVAL,
+                    TO_DATE(:1, 'YYYY-MM-DD'),
                     'Pending', :2, :3, :4, :5)
-            """,
-            [
-                request.form["App_date"],
-                request.form["D1_id"],
-                request.form["C1_id"],
-                request.form["E2_id"],
-                request.form["BB2_id"],
-            ],
-        )
+        """, [
+            request.form["App_date"],
+            request.form["D1_id"],
+            request.form["C1_id"],
+            request.form["E2_id"],
+            request.form["BB2_id"]
+        ])
         conn.commit()
         flash("✅ Appointment scheduled successfully!")
 
-    # 2) Mark Appointment as Completed & Archive
+    # ======================================================
+    # 2️⃣ Mark Appointment Completed → Archive → Safe Delete
+    # ======================================================
     if request.method == "POST" and "App_status" in request.form:
+
         app_id = request.form["App_id"]
         new_status = request.form["App_status"]
 
         try:
-            cur.execute(
-                "UPDATE Appointment SET App_status = :1 WHERE App_id = :2",
-                [new_status, app_id],
-            )
+            # Update Appointment Status
+            cur.execute("""
+                UPDATE Appointment SET App_status = :1 WHERE App_id = :2
+            """, [new_status, app_id])
             conn.commit()
 
+            # Continue ONLY if completed
             if new_status.lower() == "completed":
-                # Fetch donor + customer + hospital info
-                cur.execute(
-                    """
+
+                # Fetch Donor + Customer + Hospital Details
+                cur.execute("""
                     SELECT
                         D.D_name, D.D_contact, D.D_address, D.D_gender, D.D_age,
                         C.C_name, C.C_contact, C.C_address,
@@ -380,15 +400,13 @@ def employee_dashboard():
                     JOIN Customer C ON A.C1_id = C.C_id
                     LEFT JOIN Hospital H ON C.C_id = H.Hs_id
                     WHERE A.App_id = :1
-                    """,
-                    [app_id],
-                )
+                """, [app_id])
                 rec = cur.fetchone()
 
                 if rec:
-                    # Insert into History
-                    cur.execute(
-                        """
+
+                    # Insert into HISTORY
+                    cur.execute("""
                         INSERT INTO History (
                             D_name, D_contact, D_address, D_gender, D_age,
                             C_name, C_contact, C_address,
@@ -400,20 +418,56 @@ def employee_dashboard():
                             :9,:10,:11,
                             :12, SYSTIMESTAMP
                         )
-                        """,
-                        rec,
-                    )
+                    """, rec)
 
-                    # SOFT ARCHIVE → do not delete anything!
+                    # ============== DELETE DONOR =================
+                    cur.execute("""
+                        SELECT D_id FROM Donor
+                        WHERE D_name = :1 AND D_contact = :2
+                    """, [rec[0], rec[1]])
+                    donor_id = cur.fetchone()
+
+                    if donor_id:
+                        donor_id = donor_id[0]
+
+                        # Check if donor is used elsewhere
+                        cur.execute("""
+                            SELECT COUNT(*) FROM Appointment WHERE D1_id = :1
+                        """, [donor_id])
+                        used = cur.fetchone()[0]
+
+                        if used <= 1:
+                            cur.execute("DELETE FROM Donor WHERE D_id = :1", [donor_id])
+
+                    # ============== DELETE CUSTOMER =================
+                    cur.execute("""
+                        SELECT C_id FROM Customer
+                        WHERE C_name = :1 AND C_contact = :2
+                    """, [rec[5], rec[6]])
+                    customer_id = cur.fetchone()
+
+                    if customer_id:
+                        customer_id = customer_id[0]
+
+                        # Check customer orders
+                        cur.execute("""
+                            SELECT COUNT(*) FROM Ord WHERE C2_id = :1
+                        """, [customer_id])
+                        c_used = cur.fetchone()[0]
+
+                        if c_used == 0:
+                            cur.execute("DELETE FROM Customer WHERE C_id = :1", [customer_id])
 
                     conn.commit()
-                    flash("✅ Donation completed — archived to history!")
+                    flash("✅ Donation Completed — Donor & Customer Removed, History Updated!")
 
         except Exception as e:
             conn.rollback()
             flash(f"❌ Error completing appointment: {e}")
 
-    # 3) Fetch dropdown data
+    # ======================================================
+    # 3️⃣ Fetch Dropdown Values
+    # ======================================================
     cur.execute("SELECT E_id, E_name, BB1_id FROM Employee ORDER BY E_id")
     employees = cur.fetchall()
 
@@ -426,9 +480,10 @@ def employee_dashboard():
     cur.execute("SELECT C_id, C_name, C_contact FROM Customer ORDER BY C_id")
     customers = cur.fetchall()
 
-    # Appointment list
-    cur.execute(
-        """
+    # ======================================================
+    # 4️⃣ Appointment List
+    # ======================================================
+    cur.execute("""
         SELECT A.App_id, D.D_name, C.C_name, B.BB_name, E.E_name,
                A.App_date, A.App_status
         FROM Appointment A
@@ -437,32 +492,30 @@ def employee_dashboard():
         JOIN Employee E ON A.E2_id = E.E_id
         JOIN Bloodbank B ON A.BB2_id = B.BB_id
         ORDER BY A.App_id
-        """
-    )
+    """)
     appointments = cur.fetchall()
 
-    # Pending orders
-    cur.execute(
-        """
-        SELECT
-            o.Or_id,
-            CASE
-                WHEN c.C_name IS NOT NULL THEN c.C_name
-                WHEN h.Hs_name IS NOT NULL THEN h.Hs_name
-                ELSE 'Unknown Requester'
-            END AS Requester_Name,
-            b.BB_name,
-            o.Or_type,
-            o.Or_quantity,
-            o.Or_status
+    # ======================================================
+    # 5️⃣ Pending Orders (Customer + Hospital)
+    # ======================================================
+    cur.execute("""
+        SELECT o.Or_id,
+               CASE 
+                    WHEN c.C_name IS NOT NULL THEN c.C_name
+                    WHEN h.Hs_name IS NOT NULL THEN h.Hs_name
+                    ELSE 'Unknown'
+               END AS requester,
+               b.BB_name,
+               o.Or_type,
+               o.Or_quantity,
+               o.Or_status
         FROM Ord o
         LEFT JOIN Customer c ON o.C2_id = c.C_id
         LEFT JOIN Hospital h ON o.Hs2_id = h.Hs_id
         JOIN Bloodbank b ON o.BB4_id = b.BB_id
         WHERE o.Or_status = 'Pending'
         ORDER BY o.Or_id
-        """
-    )
+    """)
     orders = cur.fetchall()
 
     cur.close()
@@ -477,7 +530,6 @@ def employee_dashboard():
         appointments=appointments,
         orders=orders,
     )
-
 # --------------------------------------------------------
 # DONOR DASHBOARD
 # --------------------------------------------------------
@@ -493,82 +545,26 @@ def donor_dashboard():
         age = request.form.get("D_age")
         gender = request.form.get("D_gender")
         bb_id = request.form.get("BB3_id")
-        try:
-            cursor.execute(
-                """
-                INSERT INTO Donor (
-                    D_id, D_name, D_contact, D_address,
-                    D_age, D_gender, D_history, BB3_id
-                )
-                VALUES (donor_seq.NEXTVAL, :1, :2, :3, :4, :5, 0, :6)
-                """,
-                (name, contact, address, age, gender, bb_id),
+
+        cursor.execute("""
+            INSERT INTO Donor (
+                D_id, D_name, D_contact, D_address,
+                D_age, D_gender, D_history, BB3_id
             )
-            conn.commit()
-            flash("✅ Donor added successfully!")
-        except Exception as e:
-            conn.rollback()
-            flash(f"❌ Error adding donor: {e}")
+            VALUES (donor_seq.NEXTVAL, :1, :2, :3, :4, :5, 0, :6)
+        """, (name, contact, address, age, gender, bb_id))
+        conn.commit()
 
     cursor.execute("SELECT * FROM Donor ORDER BY D_id")
     donors = [
         dict(zip([c[0] for c in cursor.description], row))
         for row in cursor.fetchall()
     ]
+
     cursor.close()
     conn.close()
+
     return render_template("donor.html", donors=donors)
-
-
-# --------------------------------------------------------
-# EMPLOYEE GENERATES INVOICE (BOTH CUSTOMER + HOSPITAL ORDERS)
-# --------------------------------------------------------
-@app.route("/create_invoice", methods=["POST"])
-def create_invoice():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    try:
-        order_id = request.form.get("Or_id")
-        price_chart = {"A+": 25, "B+": 25, "AB+": 30, "O+": 20, "O-": 35}
-
-        cur.execute(
-            "SELECT Or_quantity, Or_type FROM Ord WHERE Or_id = :1", [order_id]
-        )
-        result = cur.fetchone()
-        if not result:
-            flash("❌ Invalid Order ID.")
-            return redirect(url_for("employee_dashboard"))
-
-        qty, btype = result
-        total = float(qty) * price_chart.get(btype, 25)
-
-        cur.execute("SELECT invoice_seq.NEXTVAL FROM dual")
-        invoice_id = cur.fetchone()[0]
-
-        cur.execute(
-            """
-            INSERT INTO Invoice (In_id, In_date, In_time, In_amount, In_status, Or1_id)
-            VALUES (:1, SYSDATE, SYSTIMESTAMP, :2, 'Generated', :3)
-            """,
-            (invoice_id, total, order_id),
-        )
-
-        cur.execute(
-            "UPDATE Ord SET Or_status = 'Invoiced' WHERE Or_id = :1",
-            [order_id],
-        )
-
-        conn.commit()
-        flash(f"✅ Invoice #{invoice_id} generated for Order #{order_id} | ₹{total}")
-
-    except Exception as e:
-        conn.rollback()
-        flash(f"❌ Error creating invoice: {e}")
-    finally:
-        cur.close()
-        conn.close()
-    return redirect(url_for("employee_dashboard"))
-
 
 # --------------------------------------------------------
 # CUSTOMER DASHBOARD
@@ -579,72 +575,29 @@ def customer_dashboard():
     cursor = conn.cursor()
 
     if request.method == "POST":
-        name = request.form.get("C_name")
-        address = request.form.get("C_address")
-        contact = request.form.get("C_contact")
-        gender = request.form.get("C_gender")
-        history = request.form.get("C_history")
-        try:
-            cursor.execute(
-                """
-                INSERT INTO Customer (C_id, C_name, C_address,
-                                      C_contact, C_gender, C_history)
-                VALUES (customer_seq.NEXTVAL, :1, :2, :3, :4, :5)
-                """,
-                (name, address, contact, gender, history),
-            )
-            conn.commit()
-            flash("✅ Customer added successfully!")
-        except Exception as e:
-            conn.rollback()
-            flash(f"❌ Error adding customer: {e}")
+        cursor.execute("""
+            INSERT INTO Customer (
+                C_id, C_name, C_contact, C_gender, C_history, C_address
+            ) VALUES (customer_seq.NEXTVAL, :1, :2, :3, :4, :5)
+        """, [
+            request.form["C_name"],
+            request.form["C_contact"],
+            request.form["C_gender"],
+            request.form["C_history"],
+            request.form["C_address"]
+        ])
+        conn.commit()
 
     cursor.execute("SELECT * FROM Customer ORDER BY C_id")
     customers = [
         dict(zip([c[0] for c in cursor.description], row))
         for row in cursor.fetchall()
     ]
+
     cursor.close()
     conn.close()
+
     return render_template("customer.html", customers=customers)
-
-
-# --------------------------------------------------------
-# CUSTOMER CREATES BLOOD REQUEST
-# --------------------------------------------------------
-@app.route("/create_order", methods=["POST"])
-def create_order():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    try:
-        c_id = request.form.get("C2_id")
-        bb_id = request.form.get("BB4_id")
-        btype = request.form.get("Or_type")
-        quantity = float(request.form.get("Or_quantity"))
-
-        cur.execute("SELECT order_seq.NEXTVAL FROM dual")
-        order_id = cur.fetchone()[0]
-
-        cur.execute(
-            """
-            INSERT INTO Ord (Or_id, Or_date, Or_time, Or_quantity,
-                             Or_status, Or_type, C2_id, BB4_id)
-            VALUES (:1, SYSDATE, SYSTIMESTAMP, :2,
-                    'Pending', :3, :4, :5)
-            """,
-            (order_id, quantity, btype, c_id, bb_id),
-        )
-        conn.commit()
-        flash(f"🩸 Blood request (Order #{order_id}) sent to Blood Bank!")
-
-    except Exception as e:
-        conn.rollback()
-        flash(f"❌ Error creating order: {e}")
-    finally:
-        cur.close()
-        conn.close()
-    return redirect(url_for("customer_dashboard"))
-
 
 # --------------------------------------------------------
 # CUSTOMER PAYMENT PAGE
@@ -749,6 +702,101 @@ def admin_dashboard():
         completed=completed,
     )
 
+@app.route("/admin_add_foundation", methods=["POST"])
+def admin_add_foundation():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            INSERT INTO Foundation VALUES(foundation_seq.NEXTVAL, :1,:2,:3,:4)
+        """, [
+            request.form["F_name"],
+            request.form["F_address"],
+            request.form["F_contact"],
+            request.form["F_email"]
+        ])
+        conn.commit()
+        flash("Foundation added successfully!")
+    except Exception as e:
+        conn.rollback()
+        flash(f"Error: {e}")
+    return redirect(url_for("admin_dashboard"))
+@app.route("/add_hospital", methods=["POST"])
+def add_hospital():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            INSERT INTO Hospital (Hs_id, Hs_name, Hs_address, Hs_contact, F1_id)
+            VALUES (hospital_seq.NEXTVAL, :1, :2, :3, :4)
+        """, [
+            request.form["Hs_name"],
+            request.form["Hs_address"],
+            request.form["Hs_contact"],
+            request.form["F1_id"]
+        ])
+        conn.commit()
+        flash("✅ Hospital added successfully!")
+    except Exception as e:
+        conn.rollback()
+        flash(f"❌ Error adding hospital: {e}")
+    finally:
+        cur.close()
+        conn.close()
+
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/add_bloodbank", methods=["POST"])
+def add_bloodbank():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            INSERT INTO Bloodbank (
+                BB_id, BB_name, BB_address, BB_contact, BB_volume, F2_id
+            ) VALUES (
+                bloodbank_seq.NEXTVAL, :1, :2, :3, :4, :5
+            )
+        """, [
+            request.form["BB_name"],
+            request.form["BB_address"],
+            request.form["BB_contact"],
+            request.form["BB_volume"],
+            request.form["F2_id"]
+        ])
+        conn.commit()
+        flash("✅ Blood bank added successfully!")
+    except Exception as e:
+        conn.rollback()
+        flash(f"❌ Error adding blood bank: {e}")
+    finally:
+        cur.close()
+        conn.close()
+
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/admin_add_employee", methods=["POST"])
+def admin_add_employee():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            INSERT INTO Employee VALUES(employee_seq.NEXTVAL, :1,:2,:3,:4,:5,:6,:7)
+        """, [
+            request.form["E_name"],
+            request.form["E_address"],
+            request.form["E_contact"],
+            request.form["E_age"],
+            request.form["E_designation"],
+            request.form["E_experience"],
+            request.form["BB1_id"]
+        ])
+        conn.commit()
+        flash("Employee added!")
+    except Exception as e:
+        conn.rollback()
+        flash(f"Error: {e}")
+    return redirect(url_for("admin_dashboard"))
 
 # --------------------------------------------------------
 # DONATION HISTORY PAGE
@@ -787,7 +835,7 @@ def select_role():
         "bloodbank": "bloodbank_dashboard",
         "employee": "employee_dashboard",
         "donor": "donor_dashboard",
-        "customer": "customer_dashboard",
+        
     }
     return redirect(url_for(routes.get(role, "index")))
 
@@ -877,6 +925,29 @@ def order_payment():
     conn.close()
     return render_template("order_payment.html", headers=headers, records=records)
 
+# --------------------------------------------------------
+# 🔍 API ROUTE: Get Invoice Amount by Invoice ID (AJAX)
+# --------------------------------------------------------
+@app.route("/get_invoice_amount/<invoice_id>")
+def get_invoice_amount(invoice_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT In_amount FROM Invoice WHERE In_id = :1", [invoice_id])
+        row = cur.fetchone()
+
+        if row:
+            return {"amount": row[0]}
+        else:
+            return {"amount": None}
+
+    except Exception as e:
+        return {"amount": None}
+
+    finally:
+        cur.close()
+        conn.close()
 
 # --------------------------------------------------------
 # RUN
