@@ -1,9 +1,4 @@
-------------------------------------------------------------
--- BLOOD DONATION DATABASE SYSTEM – COMPLETE TRIGGERS & SEQUENCES
--- Author: Ashika
--- Description: Full automation for IDs, status updates, audits,
--- validation, stock management, and consistency.
-------------------------------------------------------------
+
 
 ------------------------------------------------------------
 -- 🧹 Safe-Drop Utilities (allow re-execution)
@@ -393,6 +388,8 @@ CREATE SEQUENCE appointment_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE order_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE invoice_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE transaction_seq START WITH 1 INCREMENT BY 1;
+
+
 
 COMMIT;
 
