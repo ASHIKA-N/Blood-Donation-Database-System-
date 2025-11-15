@@ -391,7 +391,9 @@ def employee_dashboard():
                 # Fetch Donor + Customer + Hospital Details
                 cur.execute("""
                     SELECT
-                        D.D_name, D.D_contact, D.D_address, D.D_gender, D.D_age,
+                    
+    D.D_name, D.D_contact, D.D_address, D.D_gender, D.D_age, D.D_bloodtype,
+
                         C.C_name, C.C_contact, C.C_address,
                         H.Hs_name, H.Hs_contact, H.Hs_address,
                         A.App_date
@@ -406,19 +408,22 @@ def employee_dashboard():
                 if rec:
 
                     # Insert into HISTORY
-                    cur.execute("""
-                        INSERT INTO History (
-                            D_name, D_contact, D_address, D_gender, D_age,
-                            C_name, C_contact, C_address,
-                            Hs_name, Hs_contact, Hs_address,
-                            Donation_date, Archived_on
-                        ) VALUES (
-                            :1,:2,:3,:4,:5,
-                            :6,:7,:8,
-                            :9,:10,:11,
-                            :12, SYSTIMESTAMP
-                        )
-                    """, rec)
+                   cur.execute("""
+    INSERT INTO History (
+        D_name, D_contact, D_address, D_gender, D_age, D_bloodtype,
+        C_name, C_contact, C_address,
+        Hs_name, Hs_contact, Hs_address,
+        BB_name,
+        Donation_date, Archived_on
+    )
+    VALUES (
+        :1,:2,:3,:4,:5,:6,
+        :7,:8,:9,
+        :10,:11,:12,
+        :13,
+        :14, SYSTIMESTAMP
+    )
+""", rec)
 
                     # ============== DELETE DONOR =================
                     cur.execute("""
@@ -441,9 +446,10 @@ def employee_dashboard():
 
                     # ============== DELETE CUSTOMER =================
                     cur.execute("""
-                        SELECT C_id FROM Customer
-                        WHERE C_name = :1 AND C_contact = :2
-                    """, [rec[5], rec[6]])
+    SELECT C_id FROM Customer
+    WHERE C_name = :1 AND C_contact = :2
+""", [rec[6], rec[7]])
+
                     customer_id = cur.fetchone()
 
                     if customer_id:
@@ -547,12 +553,21 @@ def donor_dashboard():
         bb_id = request.form.get("BB3_id")
 
         cursor.execute("""
-            INSERT INTO Donor (
-                D_id, D_name, D_contact, D_address,
-                D_age, D_gender, D_history, BB3_id
-            )
-            VALUES (donor_seq.NEXTVAL, :1, :2, :3, :4, :5, 0, :6)
-        """, (name, contact, address, age, gender, bb_id))
+    INSERT INTO Donor (
+        D_id, D_name, D_contact, D_address,
+        D_age, D_gender, D_bloodtype, BB3_id
+    )
+    VALUES (donor_seq.NEXTVAL, :1, :2, :3, :4, :5, :6, :7)
+""", (
+    request.form["D_name"],
+    request.form["D_contact"],
+    request.form["D_address"],
+    request.form["D_age"],
+    request.form["D_gender"],
+    request.form["D_bloodtype"],
+    request.form["BB3_id"]
+))
+
         conn.commit()
 
     cursor.execute("SELECT * FROM Donor ORDER BY D_id")
@@ -670,6 +685,63 @@ def customer_payment():
     conn.close()
     return render_template("customer_payment.html", invoices=invoices, headers=headers)
 
+#---create invoice
+@app.route("/create_invoice", methods=["POST"])
+def create_invoice():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        order_id = request.form.get("Or_id")
+
+        # Price chart (per ml)
+        price_chart = {"A+":25, "A-":25, "B+":25, "B-":25,
+                       "AB+":30, "AB-":30, "O+":20, "O-":35}
+
+        # Fetch order details
+        cur.execute("""
+            SELECT Or_quantity, Or_type 
+            FROM Ord 
+            WHERE Or_id = :1
+        """, [order_id])
+        result = cur.fetchone()
+
+        if not result:
+            flash("❌ Invalid Order ID — cannot generate invoice.")
+            return redirect(url_for("employee_dashboard"))
+
+        qty, btype = result
+        total = float(qty) * price_chart.get(btype, 25)
+
+        # Generate invoice ID
+        cur.execute("SELECT invoice_seq.NEXTVAL FROM dual")
+        invoice_id = cur.fetchone()[0]
+
+        # Insert invoice
+        cur.execute("""
+            INSERT INTO Invoice (In_id, In_date, In_time, In_amount, In_status, Or1_id)
+            VALUES (:1, SYSDATE, SYSTIMESTAMP, :2, 'Generated', :3)
+        """, (invoice_id, total, order_id))
+
+        # Update order status
+        cur.execute("""
+            UPDATE Ord 
+            SET Or_status = 'Invoiced' 
+            WHERE Or_id = :1
+        """, [order_id])
+
+        conn.commit()
+        flash(f"✅ Invoice #{invoice_id} generated for Order #{order_id} — Amount ₹{total}")
+
+    except Exception as e:
+        conn.rollback()
+        flash(f"❌ Error generating invoice: {e}")
+
+    finally:
+        cur.close()
+        conn.close()
+
+    return redirect(url_for("employee_dashboard"))
 
 # --------------------------------------------------------
 # ADMIN DASHBOARD
@@ -924,6 +996,32 @@ def order_payment():
     cur.close()
     conn.close()
     return render_template("order_payment.html", headers=headers, records=records)
+
+@app.route("/get_employee_bloodbank/<int:eid>")
+def get_employee_bloodbank(eid):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("""
+            SELECT e.BB1_id, b.BB_name
+            FROM Employee e
+            JOIN Bloodbank b ON e.BB1_id = b.BB_id
+            WHERE e.E_id = :1
+        """, [eid])
+
+        row = cur.fetchone()
+
+        if row:
+            return {"bb_id": row[0], "bb_name": row[1]}
+        else:
+            return {"bb_id": None, "bb_name": None}
+
+    finally:
+        cur.close()
+        conn.close()
+
+
 
 # --------------------------------------------------------
 # 🔍 API ROUTE: Get Invoice Amount by Invoice ID (AJAX)

@@ -73,18 +73,20 @@ CREATE TABLE Employee (
 -- DONOR TABLE
 --------------------------------------------------------
 CREATE TABLE Donor (
-    D_id      NUMBER(10),
-    D_name    VARCHAR2(15),
-    D_contact NUMBER(10),
-    D_address VARCHAR2(255),
-    D_age     NUMBER(3),
-    D_gender  VARCHAR2(6),
-    D_history NUMBER(10),
-    BB3_id    NUMBER(10),
-    App1_id   NUMBER(10),
-    PRIMARY KEY(D_id),
-    CONSTRAINT fk_donor_bloodbank FOREIGN KEY (BB3_id) REFERENCES Bloodbank(BB_id)
+    D_id         NUMBER(10)       PRIMARY KEY,
+    D_name       VARCHAR2(50)     NOT NULL,
+    D_contact    VARCHAR2(15)     NOT NULL,
+    D_address    VARCHAR2(255),
+    D_age        NUMBER(3)        NOT NULL,
+    D_gender     VARCHAR2(10)     NOT NULL,
+    D_bloodtype  VARCHAR2(5)      NOT NULL,   -- ⭐ newly added
+    BB3_id       NUMBER(10),                 -- registered blood bank
+    CONSTRAINT fk_donor_bloodbank
+        FOREIGN KEY (BB3_id) REFERENCES Bloodbank(BB_id)
 );
+ALTER TABLE Donor ADD D_history NUMBER DEFAULT 0;
+
+CREATE SEQUENCE donor_seq START WITH 1 INCREMENT BY 1;
 
 --------------------------------------------------------
 -- CUSTOMER TABLE
@@ -187,6 +189,7 @@ CREATE TABLE History (
     Donation_date DATE,
     Archived_on DATE DEFAULT SYSDATE
 );
+ALTER TABLE History ADD D_bloodtype VARCHAR2(3);
 
 
 

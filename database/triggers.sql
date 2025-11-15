@@ -19,15 +19,17 @@ BEGIN EXECUTE IMMEDIATE 'DROP TABLE Appointment_Audit CASCADE CONSTRAINTS'; EXCE
 -- 1️⃣ Donor History Update after Completed Appointment
 ------------------------------------------------------------
 CREATE OR REPLACE TRIGGER trg_update_donor_history
-AFTER INSERT OR UPDATE ON Appointment
+AFTER UPDATE OF App_status ON Appointment
 FOR EACH ROW
-WHEN (NEW.App_status = 'Completed')
 BEGIN
-    UPDATE Donor
-    SET D_history = NVL(D_history,0) + 1
-    WHERE D_id = :NEW.D1_id;
+    IF :NEW.App_status = 'Completed' AND :OLD.App_status <> 'Completed' THEN
+        UPDATE Donor
+        SET D_history = NVL(D_history, 0) + 1
+        WHERE D_id = :NEW.D1_id;
+    END IF;
 END;
 /
+
 ------------------------------------------------------------
 
 ------------------------------------------------------------

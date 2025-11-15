@@ -5,42 +5,54 @@
   <title>Employee Dashboard - ARYAMS</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-light">
 <div class="container-fluid my-5 px-lg-5">
 
-  <!-- 👨‍💼 EMPLOYEE DASHBOARD HEADER -->
+  <!-- HEADER -->
   <h1 class="text-center text-danger fw-bold mb-5 display-4">
     👨‍💼 EMPLOYEE DASHBOARD
   </h1>
 
-  <!-- 🩺 DONOR APPOINTMENT SCHEDULING -->
-  <div class="card shadow-sm border-0 rounded-4 p-5 mx-auto mb-5" style="max-width: 100%; background-color: #ffffff;">
+  <!-- ---------------------------------------------------------
+       1️⃣ SCHEDULE DONOR APPOINTMENT
+  ---------------------------------------------------------- -->
+  <div class="card shadow-sm border-0 rounded-4 p-5 mx-auto mb-5" style="background-color:#ffffff;">
     <h2 class="text-center text-danger fw-bold mb-4" style="font-size: 2.5rem;">
       🩺 Schedule Donor Appointment
     </h2>
 
     <form method="POST">
       <div class="row mb-4 gx-5 gy-4">
+
+        <!-- Employee -->
         <div class="col-lg-3">
           <label class="form-label fw-semibold fs-4">Employee</label>
-          <select class="form-select border-danger-subtle py-3 fs-4" name="E2_id" required>
-            <option value="">-- Select Employee --</option>
-            {% for e in employees %}
-              <option value="{{ e[0] }}">ID {{ e[0] }} - {{ e[1] }}</option>
-            {% endfor %}
-          </select>
+          <select class="form-select border-danger-subtle py-3 fs-4" 
+        name="E2_id" id="employeeSelect" required>
+    <option value="">-- Select Employee --</option>
+    {% for e in employees %}
+      <option value="{{ e[0] }}">{{ e[0] }} - {{ e[1] }}</option>
+    {% endfor %}
+</select>
+
         </div>
 
-        <div class="col-lg-3">
-          <label class="form-label fw-semibold fs-4">Blood Bank</label>
-          <select class="form-select border-danger-subtle py-3 fs-4" name="BB2_id" required>
-            <option value="">-- Select Blood Bank --</option>
-            {% for b in bloodbanks %}
-              <option value="{{ b[0] }}">{{ b[1] }}</option>
-            {% endfor %}
-          </select>
-        </div>
+        <!-- Blood Bank -->
+       <div class="col-lg-3">
+  <label class="form-label fw-semibold fs-4">Blood Bank</label>
 
+  <!-- This displays the blood bank name -->
+  <input type="text" id="bbNameDisplay" class="form-control border-danger-subtle py-3 fs-4"
+         placeholder="Auto-filled" readonly>
+
+  <!-- This is hidden, gets submitted in form -->
+  <input type="hidden" name="BB2_id" id="bbHidden">
+</div>
+
+
+
+        <!-- Donor -->
         <div class="col-lg-3">
           <label class="form-label fw-semibold fs-4">Donor</label>
           <select class="form-select border-danger-subtle py-3 fs-4" name="D1_id" required>
@@ -51,6 +63,7 @@
           </select>
         </div>
 
+        <!-- Customer -->
         <div class="col-lg-3">
           <label class="form-label fw-semibold fs-4">Customer (Recipient)</label>
           <select class="form-select border-danger-subtle py-3 fs-4" name="C1_id" required>
@@ -60,6 +73,7 @@
             {% endfor %}
           </select>
         </div>
+
       </div>
 
       <div class="row mb-4">
@@ -77,8 +91,12 @@
     </form>
   </div>
 
-  <!-- 🩸 MANAGE APPOINTMENTS -->
-  <div class="card shadow-sm border-0 rounded-4 p-5 mx-auto" style="max-width: 100%; background-color: #ffffff;">
+
+
+  <!-- ---------------------------------------------------------
+       2️⃣ MANAGE APPOINTMENTS
+  ---------------------------------------------------------- -->
+  <div class="card shadow-sm border-0 rounded-4 p-5 mx-auto" style="background-color:#ffffff;">
     <h2 class="text-center text-danger fw-bold mb-5" style="font-size: 2.5rem;">
       🩸 Manage Appointments
     </h2>
@@ -96,15 +114,17 @@
           <th>Action</th>
         </tr>
       </thead>
+
       <tbody>
         {% for app in appointments %}
         <tr>
           <td>{{ app[0] }}</td>
-          <td>{{ app[4] }}</td> <!-- Employee -->
-          <td>{{ app[3] }}</td> <!-- Blood Bank -->
-          <td>{{ app[1] }}</td> <!-- Donor -->
-          <td>{{ app[2] }}</td> <!-- Customer -->
-          <td>{{ app[5] }}</td> <!-- Date -->
+          <td>{{ app[4] }}</td>
+          <td>{{ app[3] }}</td>
+          <td>{{ app[1] }}</td>
+          <td>{{ app[2] }}</td>
+          <td>{{ app[5] }}</td>
+
           <td>
             {% if app[6] == 'Completed' %}
               <span class="badge bg-success fs-5 py-2 px-3">Completed</span>
@@ -112,6 +132,7 @@
               <span class="badge bg-warning text-dark fs-5 py-2 px-3">Pending</span>
             {% endif %}
           </td>
+
           <td>
             {% if app[6] == 'Completed' %}
               <button class="btn btn-secondary btn-lg px-4 py-2 fs-5" disabled>✔ Donated</button>
@@ -128,42 +149,50 @@
       </tbody>
     </table>
   </div>
+
+
+  <!-- ---------------------------------------------------------
+       3️⃣ PENDING ORDERS + GENERATE INVOICE BUTTON
+  ---------------------------------------------------------- -->
   <div class="card shadow-sm border-0 rounded-4 p-5 mt-5">
-  <h2 class="text-danger fw-bold mb-4 text-center">🧾 Pending Orders</h2>
-  <table class="table table-bordered text-center fs-5 align-middle">
-    <thead class="table-danger">
-      <tr>
-  <th>Order ID</th>
-  <th>Requester</th>
-  <th>Blood Bank</th>
-  <th>Blood Type</th>
-  <th>Quantity</th>
-  <th>Status</th>
-  <th>Action</th>
-</tr>
+    <h2 class="text-danger fw-bold mb-4 text-center">🧾 Pending Orders</h2>
 
-    </thead>
-    <tbody>
-  {% for o in orders %}
-  <tr>
-    <td>{{ o[0] }}</td>
-    <td>{{ o[1] }}</td>
-    <td>{{ o[2] }}</td>
-    <td>{{ o[3] }}</td>
-    <td>{{ o[4] }}</td>
-    <td>{{ o[5] }}</td>
-    <td>
-      <form method="POST" action="/create_invoice" class="d-inline">
-        <input type="hidden" name="Or_id" value="{{ o[0] }}">
-        <button class="btn btn-danger btn-lg px-4 py-2 fs-5">Generate Invoice</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</tbody>
+    <table class="table table-bordered text-center fs-5 align-middle">
+      <thead class="table-danger">
+        <tr>
+          <th>Order ID</th>
+          <th>Requester</th>
+          <th>Blood Bank</th>
+          <th>Blood Type</th>
+          <th>Quantity</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
 
-  </table>
-</div>
+      <tbody>
+        {% for o in orders %}
+        <tr>
+          <td>{{ o[0] }}</td>
+          <td>{{ o[1] }}</td>
+          <td>{{ o[2] }}</td>
+          <td>{{ o[3] }}</td>
+          <td>{{ o[4] }}</td>
+          <td>{{ o[5] }}</td>
+
+          <td>
+            <form method="POST" action="{{ url_for('create_invoice') }}">
+              <input type="hidden" name="Or_id" value="{{ o[0] }}">
+              <button class="btn btn-sm btn-warning">Generate Invoice</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+
 
   <div class="text-center mt-5">
     <a href="/" class="btn btn-outline-dark px-5 py-3 fs-4">⬅ Back to Home</a>
@@ -171,68 +200,56 @@
 
 </div>
 
-<!-- 🌈 Styling -->
+<!-- ---------------------------------------------------------
+     STYLING
+---------------------------------------------------------- -->
 <style>
   body {
     background-color: #f8f9fb;
     font-family: 'Poppins', sans-serif;
   }
-
-  .card {
-    transition: all 0.3s ease;
-  }
-
-  .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 1.5rem 2rem rgba(220, 53, 69, 0.15);
-  }
-
-  .form-select,
-  .form-control {
-    border: 2px solid rgba(220, 53, 69, 0.3);
+  .card { transition: 0.3s ease; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 1.5rem 2rem rgba(220,53,69,0.15); }
+  .form-select, .form-control {
+    border: 2px solid rgba(220,53,69,0.3);
     border-radius: 14px;
     transition: 0.25s ease;
   }
-
-  .form-select:focus,
-  .form-control:focus {
+  .form-select:focus, .form-control:focus {
     border-color: #dc3545;
-    box-shadow: 0 0 0 0.35rem rgba(220, 53, 69, 0.25);
+    box-shadow: 0 0 0 0.35rem rgba(220,53,69,0.25);
   }
-
   .btn-danger {
     background: linear-gradient(90deg, #dc3545, #b52a38);
-    border: none;
-    transition: 0.3s ease;
+    border: none; transition: 0.3s ease;
   }
-
   .btn-danger:hover {
     background: linear-gradient(90deg, #b52a38, #9a1d2e);
     transform: scale(1.08);
   }
-
-  table th, table td {
-    vertical-align: middle !important;
-  }
-
-  .badge {
-    font-size: 1.1rem;
-  }
-
-  @media (max-width: 992px) {
-    .card {
-      padding: 2rem !important;
-    }
-
-    h2 {
-      font-size: 1.8rem !important;
-    }
-
-    .btn-danger {
-      width: 100%;
-      font-size: 1.2rem;
-    }
-  }
+  table th, table td { vertical-align: middle !important; }
 </style>
+<script>
+document.getElementById("employeeSelect").addEventListener("change", function () {
+    let empId = this.value;
+    if (!empId) return;
+
+    fetch(`/get_employee_bloodbank/${empId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.bb_id && data.bb_name) {
+
+                // Display bank name
+                document.getElementById("bbNameDisplay").value = data.bb_name;
+
+                // Hidden input for form submission
+                document.getElementById("bbHidden").value = data.bb_id;
+            }
+        });
+});
+</script>
+
+
+
 </body>
 </html>
