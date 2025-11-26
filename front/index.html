@@ -1,121 +1,101 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ARYAMS - Role Selection</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+{% extends "base.html" %}
+{% block content %}
 
-  <style>
-    body {
-      background: linear-gradient(135deg, #a60000, #ff4d4d);
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Poppins', sans-serif;
-      color: #fff;
-    }
+<!-- ========================= HERO SECTION ========================= -->
+<div class="text-center py-5" style="background-color: #ffe8e8; border-radius: 15px;">
+    <h1 class="fw-bold text-danger">❤️ ARYAMS BLOOD DONATION SYSTEM</h1>
+    <p class="lead mt-3">
+        Donate Blood. Save Lives. Manage Blood Banks, Donors, Hospitals & Donations Seamlessly.
+    </p>
+    <a href="/admin" class="btn btn-danger px-5 py-2 mt-3 fw-semibold">Go to Admin Dashboard</a>
+</div>
 
-    .container {
-      background-color: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(8px);
-      border-radius: 15px;
-      padding: 2rem 3rem;
-      width: 420px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-    }
+<!-- ========================= FEATURE CARDS ========================= -->
+<h3 class="text-center mt-5 mb-4 text-danger fw-bold">Platform Modules</h3>
 
-    h1 {
-      text-align: center;
-      margin-bottom: 25px;
-      color: #ffeb3b;
-      font-weight: 700;
-    }
+<div class="row g-4">
 
-    .role-box {
-      background: #fff;
-      color: #a60000;
-      border-radius: 10px;
-      text-align: center;
-      padding: 15px 0;
-      font-weight: bold;
-      font-size: 1.2rem;
-      margin-bottom: 15px;
-      transition: 0.3s ease-in-out;
-      cursor: pointer;
-      border: 3px solid transparent;
-    }
+    <!-- Donor -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center">
+                <h4 class="text-danger fw-bold">🩸 Donors</h4>
+                <p>Register new donors, manage donor details, and track donation history.</p>
+                <a href="/donor" class="btn btn-outline-danger px-4">View Donors</a>
+            </div>
+        </div>
+    </div>
 
-    .role-box:hover {
-      transform: scale(1.05);
-      border-color: #ffeb3b;
-      box-shadow: 0 0 10px #ffeb3b;
-    }
+    <!-- Customer -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center">
+                <h4 class="text-danger fw-bold">🧑‍🤝‍🧑 Customers</h4>
+                <p>Register customers and link them with hospitals for blood requests.</p>
+                <a href="/customer" class="btn btn-outline-danger px-4">View Customers</a>
+            </div>
+        </div>
+    </div>
 
-    .selected {
-      border: 3px solid #ffeb3b;
-      box-shadow: 0 0 12px #ffeb3b;
-    }
+    <!-- Appointments -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center">
+                <h4 class="text-danger fw-bold">📅 Appointments</h4>
+                <p>Track scheduled appointments, donors, employees & completion status.</p>
+                <a href="/appointments" class="btn btn-outline-danger px-4">View Appointments</a>
+            </div>
+        </div>
+    </div>
 
-    .login-link {
-      display: block;
-      text-align: center;
-      margin-top: 25px;
-    }
+</div>
 
-    .btn-login {
-      background-color: #fff;
-      color: #a60000;
-      font-weight: 600;
-      border: 2px solid #ffeb3b;
-      padding: 8px 20px;
-      border-radius: 25px;
-      text-decoration: none;
-      transition: 0.3s ease;
-    }
+<br>
 
-    .btn-login:hover {
-      background-color: #ffeb3b;
-      color: #a60000;
-      text-decoration: none;
-    }
-  </style>
-</head>
+<div class="row g-4">
 
-<body>
-  <div class="container">
-    <h1>Who Are You?</h1>
+    <!-- Blood Bank -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center">
+                <h4 class="text-danger fw-bold">🏦 Blood Banks</h4>
+                <p>Manage registered blood banks, stock levels, and foundation links.</p>
+                <a href="/bloodbank" class="btn btn-outline-danger px-4">View Blood Banks</a>
+            </div>
+        </div>
+    </div>
 
-    <form id="roleForm" method="POST" action="/select_role">
-      <input type="hidden" id="selectedRole" name="role">
+    <!-- Hospital -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center">
+                <h4 class="text-danger fw-bold">🏥 Hospitals</h4>
+                <p>Manage hospitals associated with the ARYAMS Foundation.</p>
+                <a href="/hospital" class="btn btn-outline-danger px-4">View Hospitals</a>
+            </div>
+        </div>
+    </div>
 
-      <div class="role-box" data-role="admin">Admin</div>
-      <div class="role-box" data-role="foundation">Foundation</div>
-      <div class="role-box" data-role="hospital">Hospital</div>
-      
-      <div class="role-box" data-role="employee">Employee</div>
-      <div class="role-box" data-role="donor">Donor</div>
+    <!-- Employees -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center">
+                <h4 class="text-danger fw-bold">👨‍⚕️ Employees</h4>
+                <p>Manage staff responsible for handling donations & appointments.</p>
+                <a href="/employee" class="btn btn-outline-danger px-4">View Employees</a>
+            </div>
+        </div>
+    </div>
 
-      <div class="login-link">
-        <a href="/login" class="btn-login">🔐 Login Here</a>
-      </div>
-    </form>
-  </div>
+</div>
 
-  <script>
-    const boxes = document.querySelectorAll(".role-box");
-    const roleInput = document.getElementById("selectedRole");
-    const form = document.getElementById("roleForm");
+<br>
 
-    boxes.forEach(box => {
-      box.addEventListener("click", () => {
-        boxes.forEach(b => b.classList.remove("selected"));
-        box.classList.add("selected");
-        roleInput.value = box.dataset.role;
-        setTimeout(() => form.submit(), 250); // smooth submit delay
-      });
-    });
-  </script>
-</body>
-</html>
+<!-- ========================= HISTORY ========================= -->
+<div class="text-center mt-4">
+    <a href="/history" class="btn btn-danger px-5 py-2 fw-semibold">
+        🧾 View Completed Donation History
+    </a>
+</div>
+
+{% endblock %}

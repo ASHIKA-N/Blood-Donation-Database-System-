@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="text-center text-danger fw-bold mb-4">📅 Appointment Management</h2>
+
+<!-- ===================== CREATE NEW APPOINTMENT ===================== -->
+<div class="card shadow-sm p-4 mb-4 border-0 rounded-4">
+
+  <h4 class="text-danger fw-bold mb-3 text-center">➕ Schedule New Appointment</h4>
+
+  <form method="POST" action="/appointments">
+
+    <div class="row g-3">
+
+      <!-- DATE -->
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Appointment Date</label>
+        <input type="date" name="App_date" class="form-control" required>
+      </div>
+
+      <!-- DONOR -->
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Select Donor</label>
+        <select name="D1_id" class="form-select" required>
+          <option value="">Choose Donor</option>
+          {% for d in donors %}
+          <option value="{{ d[0] }}">{{ d[1] }} (ID: {{ d[0] }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- CUSTOMER -->
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Select Customer</label>
+        <select name="C1_id" class="form-select" required>
+          <option value="">Choose Customer</option>
+          {% for c in customers %}
+          <option value="{{ c[0] }}">{{ c[1] }} (ID: {{ c[0] }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- EMPLOYEE -->
+      <div class="col-md-6 mt-3">
+        <label class="form-label fw-semibold">Select Employee</label>
+        <select name="E2_id" id="employeeDropdown" class="form-select" required>
+          <option value="">Choose Employee</option>
+          {% for e in employees %}
+          <option value="{{ e[0] }}">{{ e[1] }} (ID: {{ e[0] }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- BLOOD BANK AUTO-FILLED -->
+      <div class="col-md-6 mt-3">
+        <label class="form-label fw-semibold">Select Blood Bank</label>
+        <select name="BB2_id" id="bankDropdown" class="form-select" required>
+          <option value="">Choose Blood Bank</option>
+          {% for b in bloodbanks %}
+          <option value="{{ b[0] }}">{{ b[1] }} (ID: {{ b[0] }})</option>
+          {% endfor %}
+        </select>
+        
+      </div>
+
+    </div>
+
+    <div class="text-center mt-4">
+      <button class="btn btn-danger px-5 fw-semibold">Create Appointment</button>
+    </div>
+
+  </form>
+</div>
+
+
+
+<!-- ===================== APPOINTMENT LIST ===================== -->
+<h4 class="text-danger fw-bold mb-3 text-center">📋 Appointment Records</h4>
+
+<table class="table table-bordered table-striped shadow-sm text-center align-middle">
+  <thead class="table-danger">
+    <tr>
+      <th>App ID</th>
+      <th>Donor</th>
+      <th>Customer</th>
+      <th>Blood Bank</th>
+      <th>Employee</th>
+      <th>Date</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for a in appointments %}
+    <tr>
+      <td>{{ a[0] }}</td>
+      <td>{{ a[1] }}</td>
+      <td>{{ a[2] }}</td>
+      <td>{{ a[3] }}</td>
+      <td>{{ a[4] }}</td>
+      <td>{{ a[5] }}</td>
+
+      <td>
+        {% if a[6] == "Completed" %}
+          <span class="badge bg-success">{{ a[6] }}</span>
+        {% else %}
+          <span class="badge bg-warning text-dark">{{ a[6] }}</span>
+        {% endif %}
+      </td>
+
+      <td>
+        {% if a[6] != "Completed" %}
+        <form method="POST" action="/appointments" class="d-inline">
+          <input type="hidden" name="App_id" value="{{ a[0] }}">
+          <input type="hidden" name="App_status" value="Completed">
+          <button class="btn btn-sm btn-success">✔ Complete</button>
+        </form>
+        {% else %}
+          ✔
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+
+</table>
+
+
+<div class="text-center mt-4">
+  <a href="/employee" class="btn btn-outline-dark px-5 py-2">⬅ Back to Employee</a>
+</div>
+
+<!-- ===================== AUTO FILL SCRIPT ===================== -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    const empSelect = document.getElementById("employeeDropdown");
+    const bankSelect = document.getElementById("bankDropdown");
+
+    empSelect.addEventListener("change", function () {
+        const empId = this.value;
+
+        if (!empId) return;
+
+        fetch(`/get_bank/${empId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) return;
+
+                // Auto select correct blood bank
+                bankSelect.value = data.BB_id;
+            })
+            .catch(err => console.error("Error fetching bank:", err));
+    });
+
+});
+</script>
+
+{% endblock %}

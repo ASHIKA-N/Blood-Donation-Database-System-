@@ -1,113 +1,100 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Donor Portal - ARYAMS</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+{% extends "base.html" %}
+{% block content %}
 
-<body class="bg-light">
-<div class="container py-5">
+<h2 class="text-center text-danger fw-bold mb-4">🩸 Donor Registration</h2>
 
-  <h2 class="text-center text-danger mb-4">🩸 Register New Donor</h2>
+<div class="card shadow-sm p-4 mb-4 border-0 rounded-4">
 
-  <form method="POST" action="/donor" class="card p-4 shadow-sm mb-4">
-    <div class="row g-3">
+    <h4 class="text-danger fw-bold mb-3 text-center">➕ Add Donor</h4>
 
-      <div class="col-md-6">
-        <label class="form-label">Name</label>
-        <input name="D_name" class="form-control" required>
-      </div>
+    <form method="POST" action="/donor">
 
-      <div class="col-md-6">
-        <label class="form-label">Contact</label>
-        <input name="D_contact" class="form-control" required>
-      </div>
+        <div class="row g-3">
 
-      <div class="col-md-6">
-        <label class="form-label">Age</label>
-        <input name="D_age" type="number" class="form-control" required>
-      </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Name</label>
+                <input type="text" name="D_name" class="form-control" required>
+            </div>
 
-      <div class="col-md-6">
-        <label class="form-label">Gender</label>
-        <select name="D_gender" class="form-select">
-          <option>Male</option>
-          <option>Female</option>
-        </select>
-      </div>
+            <div class="col-md-6">
+                <label>Contact</label>
+                <input type="text" name="D_contact" class="form-control" required>
+            </div>
 
-      <!-- ⭐ ADD BLOOD TYPE HERE -->
-      <div class="col-md-6">
-        <label class="form-label">Blood Type</label>
-        <select name="D_bloodtype" class="form-select" required>
-          <option value="A+">A+</option>
-          <option value="A-">A-</option>
-          <option value="B+">B+</option>
-          <option value="B-">B-</option>
-          <option value="AB+">AB+</option>
-          <option value="AB-">AB-</option>
-          <option value="O+">O+</option>
-          <option value="O-">O-</option>
-        </select>
-      </div>
-      <!-- ⭐ END BLOOD TYPE FIELD -->
+            <div class="col-md-12">
+                <label>Address</label>
+                <input type="text" name="D_address" class="form-control" required>
+            </div>
 
-      <div class="col-12">
-        <label class="form-label">Address</label>
-        <textarea name="D_address" class="form-control" rows="2"></textarea>
-      </div>
+            <div class="col-md-4">
+                <label>Age</label>
+                <input type="number" name="D_age" class="form-control" required>
+            </div>
 
-      <div class="col-12">
-        <label class="form-label">Blood Bank ID</label>
-        <input name="BB3_id" type="number" class="form-control">
-      </div>
+            <div class="col-md-4">
+                <label>Gender</label>
+                <select name="D_gender" class="form-select" required>
+                    <option value="">Select</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                </select>
+            </div>
 
-      <div class="text-center">
-        <button class="btn btn-danger mt-3">Add Donor</button>
-      </div>
+            <div class="col-md-4">
+                <label>Blood Type</label>
+                <select name="D_bloodtype" class="form-select" required>
+                    <option>A+</option><option>A-</option>
+                    <option>B+</option><option>B-</option>
+                    <option>O+</option><option>O-</option>
+                    <option>AB+</option><option>AB-</option>
+                </select>
+            </div>
 
-    </div>
-  </form>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Registered Bloodbank</label>
+                <select name="BB3_id" class="form-select" required>
+                    <option value="">Select Bloodbank</option>
+                    {% for b in bloodbanks %}
+                        <option value="{{ b[0] }}">{{ b[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-  <h4 class="text-center text-danger mb-3">Registered Donors</h4>
+        </div>
 
-  <table class="table table-bordered table-striped">
-    <thead class="table-danger text-center">
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Contact</th>
-        <th>Age</th>
-        <th>Gender</th>
-        <th>Blood Type</th> <!-- ⭐ DISPLAY BLOOD TYPE -->
-        <th>Address</th>
-        <th>BloodBank ID</th>
-        <th>History</th>
-      </tr>
-    </thead>
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-danger px-5 py-2">
+                Register Donor
+            </button>
+        </div>
 
-    <tbody>
-      {% for d in donors %}
-      <tr>
-        <td>{{ d.D_ID }}</td>
-        <td>{{ d.D_NAME }}</td>
-        <td>{{ d.D_CONTACT }}</td>
-        <td>{{ d.D_AGE }}</td>
-        <td>{{ d.D_GENDER }}</td>
-        <td>{{ d.D_BLOODTYPE }}</td> <!-- ⭐ NEW FIELD -->
-        <td>{{ d.D_ADDRESS }}</td>
-        <td>{{ d.BB3_ID }}</td>
-        <td>{{ d.D_HISTORY }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <div class="text-center mt-4">
-    <a href="/" class="btn btn-outline-dark">⬅ Back to Home</a>
-  </div>
-
+    </form>
 </div>
-</body>
-</html>
+
+
+<h4 class="text-danger fw-bold mb-3 text-center">📋 Donor List</h4>
+
+{% if donors %}
+<table class="table table-bordered table-striped shadow-sm text-center">
+    <thead class="table-danger">
+        <tr>
+            {% for h in headers %}
+                <th>{{ h }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in donors %}
+        <tr>
+            {% for c in row %}
+                <td>{{ c }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="text-center text-muted">No donors found.</p>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="text-center text-danger fw-bold mb-4">🩸 Blood Stock Overview</h2>
+
+{% if stocks %}
+<table class="table table-bordered table-striped shadow-sm text-center align-middle">
+    <thead class="table-danger">
+        <tr>
+            <th>Blood Bank</th>
+            <th>Blood Type</th>
+            <th>Quantity (Units)</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for row in stocks %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% else %}
+<div class="alert alert-warning text-center fw-semibold">
+    No blood stock data available.
+</div>
+{% endif %}
+
+<div class="text-center mt-4">
+    <a href="/admin" class="btn btn-outline-dark px-5 py-2">⬅ Back to Admin Dashboard</a>
+</div>
+
+{% endblock %}

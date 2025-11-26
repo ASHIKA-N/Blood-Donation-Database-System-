@@ -1,95 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>ARYAMS Login</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: red;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: "Segoe UI", sans-serif;
-    }
-    .login-box {
-      background-color: white;
-      width: 380px;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    }
-    h2 {
-      text-align: center;
-      color: red;
-      font-weight: bold;
-      margin-bottom: 25px;
-    }
-    .form-label {
-      font-weight: 600;
-      color: #333;
-    }
-    .btn-login {
-      background-color: red;
-      color: white;
-      font-weight: bold;
-      width: 100%;
-    }
-    .btn-login:hover {
-      background-color: darkred;
-    }
-    .back-link {
-      text-align: center;
-      margin-top: 15px;
-    }
-    .back-link a {
-      text-decoration: none;
-      color: red;
-      font-weight: 600;
-    }
-  </style>
-</head>
+{% extends "base.html" %}
+{% block content %}
 
-<body>
-  <div class="login-box">
-    <h2>ARYAMS Login</h2>
-    <form action="/login" method="POST">
-      <!-- Role Selection -->
-      <div class="mb-3">
-        <label for="role" class="form-label">Select Role</label>
-        <select class="form-select" id="role" name="role" required>
-          <option value="">-- Choose Role --</option>
-          <option value="admin">Admin</option>
-          <option value="donor">Donor</option>
-          <option value="hospital">Hospital</option>
-          <option value="bloodbank">Blood Bank</option>
-          <option value="foundation">Foundation</option>
-          <option value="customer">Customer</option>
-        </select>
-      </div>
+<div class="row justify-content-center">
+    <div class="col-md-5">
 
-      <!-- Email / ID -->
-      <div class="mb-3">
-        <label for="email" class="form-label">Email / ID</label>
-        <input type="text" class="form-control" id="email" name="email" placeholder="Enter your email or ID" required>
-      </div>
+        <div class="card p-4 shadow-sm border-0 rounded-4 mt-5">
 
-      <!-- Password -->
-      <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
-      </div>
+            <h3 class="text-center text-danger fw-bold mb-3">
+                🔐 Admin Login
+            </h3>
 
-      <!-- Login Button -->
-      <button type="submit" class="btn btn-login mt-3">Login</button>
-    </form>
+            <form method="POST" action="/login">
 
-    <div class="back-link">
-      <a href="/">← Back to Home</a>
+                <label class="fw-semibold">Username</label>
+                <input type="text" name="username" class="form-control mb-3"
+                       placeholder="Enter username" required>
+
+                <label class="fw-semibold">Password</label>
+                <input type="password" name="password" class="form-control mb-3"
+                       placeholder="Enter password" required>
+
+                <button class="btn btn-danger w-100 fw-semibold">
+                    Login
+                </button>
+
+            </form>
+
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="/" class="btn btn-outline-dark px-4">⬅ Back to Home</a>
+        </div>
+
     </div>
-  </div>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}

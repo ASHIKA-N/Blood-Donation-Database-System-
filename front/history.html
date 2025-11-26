@@ -1,47 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Donation History - ARYAMS</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body { background-color:#f8f9fa; font-family:'Poppins',sans-serif; }
-    .title-banner { font-weight:700; color:#dc3545; font-size:2rem; }
-    .table thead th { background:#dc3545 !important; color:white; text-align:center; }
-    .table tbody td { text-align:center; vertical-align:middle; }
-  </style>
-</head>
+{% extends "base.html" %}
+{% block content %}
 
-<body>
+<h2 class="text-center text-danger fw-bold mb-4">🧾 Completed Donation History</h2>
 
-<div class="container py-5">
-  <h1 class="text-center title-banner mb-4">🧾 Donation History</h1>
-
-  <div class="card shadow p-4 mb-5">
-    <table class="table table-bordered table-striped">
-      <thead>
+{% if history %}
+<table class="table table-bordered table-striped shadow-sm text-center align-middle">
+    <thead class="table-danger">
         <tr>
-          {% for h in headers %}
-          <th>{{ h }}</th>
-          {% endfor %}
+            <th>Donor</th>
+            <th>Contact</th>
+            <th>Blood Type</th>
+
+            <th>Customer</th>
+            <th>Hospital</th>
+            <th>Blood Bank</th>
+            <th>Donation Date</th>
+            <th>Archived</th>
         </tr>
-      </thead>
-      <tbody>
-        {% for r in records %}
+    </thead>
+
+    <tbody>
+        {% for row in history %}
         <tr>
-          {% for col in r %}
-          <td>{{ col }}</td>
-          {% endfor %}
+            <td>{{ row[0] }}</td> <!-- Donor Name -->
+            <td>{{ row[1] }}</td> <!-- Donor Contact -->
+            <td>{{ row[5] }}</td> <!-- Donor Bloodtype -->
+
+            <td>{{ row[6] }}</td> <!-- Customer Name -->
+            <td>{{ row[9] }}</td> <!-- Hospital Name -->
+            <td>{{ row[12] }}</td> <!-- Blood Bank Name -->
+
+            <td>{{ row[13] }}</td> <!-- Donation Date -->
+            <td>{{ row[14] }}</td> <!-- Archived Date -->
         </tr>
         {% endfor %}
-      </tbody>
-    </table>
-  </div>
+    </tbody>
+</table>
+{% else %}
+<div class="alert alert-warning text-center fw-semibold">
+    ⚠ No completed donations found.
+</div>
+{% endif %}
 
-  <div class="text-center mt-4">
-    <a href="/admin" class="btn btn-outline-dark px-4 py-2">⬅ Back to Admin Dashboard</a>
-  </div>
+<div class="text-center mt-4">
+    <a href="/admin" class="btn btn-outline-dark px-5 py-2">⬅ Back to Admin Dashboard</a>
 </div>
 
-</body>
-</html>
+{% endblock %}

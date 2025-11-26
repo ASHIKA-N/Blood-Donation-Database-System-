@@ -1,146 +1,249 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Hospital Portal - ARYAMS</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+{% extends "base.html" %}
+{% block content %}
 
-<body class="bg-light">
-<div class="container py-5">
+<h2 class="text-center text-danger fw-bold mb-4">🏥 Hospital Management</h2>
 
-  <!-- HEADER -->
-  <h2 class="text-center text-danger fw-bold mb-4">
-    🏥 Hospital Blood Request Portal
-  </h2>
 
-  <!-- BLOOD REQUEST FORM -->
-  <div class="card p-4 shadow-sm mb-5">
-    <h4 class="text-danger fw-bold mb-3 text-center">💉 Request Blood From Blood Bank</h4>
+<!-- ===================================================== -->
+<!--                    ADD HOSPITAL                      -->
+<!-- ===================================================== -->
+<div class="card shadow-sm p-4 mb-4">
+    <h4 class="text-danger fw-bold mb-3 text-center">➕ Add New Hospital</h4>
+
+    <form method="POST" action="/hospital">
+        <div class="row g-3">
+
+            <div class="col-md-6">
+                <label class="form-label">Hospital Name</label>
+                <input type="text" name="Hs_name" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Contact</label>
+                <input type="number" name="Hs_contact" class="form-control" required>
+            </div>
+
+            <div class="col-md-12">
+                <label class="form-label">Address</label>
+                <textarea name="Hs_address" class="form-control" required></textarea>
+            </div>
+
+            <input type="hidden" name="F1_id" value="1">
+        </div>
+
+        <div class="text-center mt-3">
+            <button class="btn btn-danger px-5">Add Hospital</button>
+        </div>
+    </form>
+</div>
+
+
+
+<!-- ===================================================== -->
+<!--                  HOSPITAL LIST VIEW                   -->
+<!-- ===================================================== -->
+<h4 class="text-danger fw-bold mb-3 text-center">📋 Hospital List</h4>
+
+<table class="table table-bordered table-striped text-center shadow-sm">
+    <thead class="table-danger">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Contact</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for h in hospitals %}
+        <tr>
+            <td>{{ h[0] }}</td>
+            <td>{{ h[1] }}</td>
+            <td>{{ h[2] }}</td>
+            <td>{{ h[3] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+
+<!-- ===================================================== -->
+<!--                    PLACE BLOOD ORDER                  -->
+<!-- ===================================================== -->
+<div class="card shadow-sm p-4 mt-4">
+    <h4 class="text-danger fw-bold mb-3 text-center">🩸 Place Blood Order</h4>
 
     <form method="POST" action="/hospital_order">
-      <div class="row g-3">
 
-        <!-- Hospital ID -->
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Hospital ID</label>
-          <input name="Hs2_id" type="number" class="form-control" required>
+        <div class="row g-3">
+
+            <!-- SELECT PATIENT -->
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Select Existing Patient</label>
+                <select id="patientSelect" class="form-select">
+                    <option value="">Choose Patient</option>
+
+                    {% for c in customers %}
+                    <option
+                        value="{{ c[0] }}"
+                        data-cname="{{ c[1] }}"
+                        data-ccontact="{{ c[2] }}"
+                        data-cgender="{{ c[3] }}"
+                        data-caddress="{{ c[4] }}"
+                        data-hid="{{ c[5] }}"
+                    >
+                        {{ c[1] }} (ID: {{ c[0] }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- AUTO HOSPITAL -->
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Hospital</label>
+                <select name="Hs2_id" id="hospitalField" class="form-select" required>
+                    <option value="">Choose Hospital</option>
+                    {% for h in hospitals %}
+                    <option value="{{ h[0] }}">{{ h[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- BLOOD BANK -->
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Blood Bank</label>
+                <select name="BB4_id" class="form-select" required>
+                    <option value="">Choose Blood Bank</option>
+                    {% for b in bloodbanks %}
+                    <option value="{{ b[0] }}">{{ b[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- BLOOD TYPE -->
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Blood Type</label>
+                <select name="Or_type" class="form-select">
+                    <option>A+</option><option>A-</option>
+                    <option>B+</option><option>B-</option>
+                    <option>AB+</option><option>AB-</option>
+                    <option>O+</option><option>O-</option>
+                </select>
+            </div>
+
+            <!-- QUANTITY -->
+            <div class="col-md-6">
+                <label class="form-label">Quantity (ml)</label>
+                <input type="number" name="Or_quantity" class="form-control" required>
+            </div>
+
+            <!-- PATIENT DETAILS -->
+            <div class="col-md-6">
+                <label class="form-label">Patient Name</label>
+                <input type="text" name="C_name" id="pname" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Patient Contact</label>
+                <input type="text" name="C_contact" id="pcontact" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Patient Gender</label>
+                <input type="text" name="C_gender" id="pgender" class="form-control" required>
+            </div>
+
+            <div class="col-md-12">
+                <label class="form-label">Patient Address</label>
+                <textarea name="C_address" id="paddress" class="form-control" rows="2"></textarea>
+            </div>
+
         </div>
 
-        <!-- Patient Name -->
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Patient Name</label>
-          <input name="C_name" type="text" class="form-control" required>
+        <div class="text-center mt-3">
+            <button class="btn btn-danger px-5">Place Order</button>
         </div>
-
-        <!-- Patient Contact -->
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Patient Contact</label>
-          <input name="C_contact" type="text" class="form-control" required>
-        </div>
-
-        <!-- Patient Gender -->
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Gender</label>
-          <select name="C_gender" class="form-select" required>
-            <option value="">-- Select --</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-        </div>
-
-        <!-- Patient Address -->
-        <div class="col-md-8">
-          <label class="form-label fw-semibold">Patient Address</label>
-          <input name="C_address" type="text" class="form-control" required>
-        </div>
-
-        <!-- Blood Bank ID -->
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Blood Bank ID</label>
-          <input name="BB4_id" type="number" class="form-control" required>
-        </div>
-
-        <!-- Blood Type -->
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Blood Type</label>
-          <select name="Or_type" class="form-select" required>
-            <option value="">-- Select Type --</option>
-            <option value="A+">A+</option>
-            <option value="A-">A-</option>
-            <option value="B+">B+</option>
-            <option value="B-">B-</option>
-            <option value="AB+">AB+</option>
-            <option value="AB-">AB-</option>
-            <option value="O+">O+</option>
-            <option value="O-">O-</option>
-          </select>
-        </div>
-
-        <!-- Quantity -->
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Quantity (ml)</label>
-          <input name="Or_quantity" type="number" class="form-control" required>
-        </div>
-
-      </div>
-
-      <div class="text-center mt-4">
-        <button class="btn btn-danger px-5 py-2 fw-semibold">
-          📤 Submit Blood Request
-        </button>
-      </div>
 
     </form>
-  </div>
+</div>
 
-  <!-- VIEW ALL ORDERS OF THIS HOSPITAL -->
-  <h4 class="text-center text-danger fw-bold mb-3">🧾 Blood Orders Submitted</h4>
 
-  <table class="table table-bordered table-striped shadow-sm text-center">
+
+<!-- ===================================================== -->
+<!--                      ORDER LIST                       -->
+<!-- ===================================================== -->
+<h4 class="text-danger fw-bold mt-5 text-center">📦 Orders Placed</h4>
+
+{% if orders %}
+<table class="table table-bordered table-striped shadow-sm text-center">
     <thead class="table-danger">
-      <tr>
-        <th>Order ID</th>
-        <th>Hospital</th>
-        <th>Customer</th>
-        <th>Blood Bank</th>
-        <th>Type</th>
-        <th>Quantity</th>
-        <th>Status</th>
-      </tr>
+        <tr>
+            <th>Order ID</th>
+            <th>Hospital</th>
+            <th>Patient</th>
+            <th>Blood Bank</th>
+            <th>Blood Type</th>
+            <th>Quantity</th>
+            <th>Status</th>
+            <th>Invoice / Payment</th>
+        </tr>
     </thead>
 
     <tbody>
-      {% for o in orders %}
-      <tr>
-        <td>{{ o.OR_ID }}</td>
-        <td>{{ o.HS_NAME }}</td>
-        <td>{{ o.C_NAME }}</td>
-        <td>{{ o.BB_NAME }}</td>
-        <td>{{ o.OR_TYPE }}</td>
-        <td>{{ o.OR_QUANTITY }}</td>
-        <td>{{ o.OR_STATUS }}</td>
-      </tr>
-      {% endfor %}
-      
-      {% if not orders %}
-      <tr><td colspan="7" class="text-muted">No orders submitted yet.</td></tr>
-      {% endif %}
+        {% for o in orders %}
+        <tr>
+            <td>{{ o[0] }}</td>
+            <td>{{ o[1] }}</td>
+            <td>{{ o[2] }}</td>
+            <td>{{ o[3] }}</td>
+            <td>{{ o[4] }}</td>
+            <td>{{ o[5] }}</td>
+            <td>{{ o[6] }}</td>
+
+            <td>
+                {% if o[6] == "Pending" %}
+                    <span class="badge bg-warning">Pending</span>
+
+                {% elif o[6] == "Invoiced" %}
+                    <a href="/customer_payment" class="btn btn-success btn-sm">Pay Now</a>
+
+                {% elif o[6] == "Completed" %}
+                    <span class="badge bg-success">Paid</span>
+
+                {% else %}
+                    <span class="badge bg-secondary">Unknown</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
     </tbody>
-  </table>
+</table>
 
-  <!-- ⭐⭐ ADDED PAYMENT PAGE BUTTON ⭐⭐ -->
-  <div class="text-center my-4">
-    <a href="/hospital_payment" class="btn btn-outline-danger px-5 py-2 fs-5 fw-bold">
-      💳 Go to Payment Page
-    </a>
-  </div>
-
-  <div class="text-center mt-4">
-    <a href="/" class="btn btn-outline-dark px-5">⬅ Back to Home</a>
-  </div>
-
+{% else %}
+<div class="alert alert-warning text-center fw-semibold">
+    ⚠ No orders found.
 </div>
+{% endif %}
 
-</body>
-</html>
+
+
+
+<!-- ===================================================== -->
+<!--                      SCRIPT SECTION                   -->
+<!-- ===================================================== -->
+<script>
+document.getElementById("patientSelect").addEventListener("change", function () {
+    let opt = this.options[this.selectedIndex];
+    if (opt.value === "") return;
+
+    document.getElementById("pname").value = opt.dataset.cname;
+    document.getElementById("pcontact").value = opt.dataset.ccontact;
+    document.getElementById("pgender").value = opt.dataset.cgender;
+    document.getElementById("paddress").value = opt.dataset.caddress;
+
+    if (opt.dataset.hid)
+        document.getElementById("hospitalField").value = opt.dataset.hid;
+});
+</script>
+
+{% endblock %}

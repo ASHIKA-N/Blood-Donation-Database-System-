@@ -1,83 +1,95 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Customer Portal - ARYAMS</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+{% extends "base.html" %}
+{% block content %}
 
-<body class="bg-light">
-<div class="container py-5">
+<h2 class="text-center text-danger fw-bold mb-4">🧑 Customer Management</h2>
 
-  <!-- 🩸 CUSTOMER REGISTRATION -->
- <h2 class="text-center text-danger mt-5">Customer Records (View Only)</h2>
-<p class="text-center text-muted">Customers are auto-created when hospitals request blood.</p>
+<div class="card shadow-sm p-4 mb-4 border-0 rounded-4">
 
-<table class="table table-bordered mt-4">
-  <thead class="table-danger">
-    <tr>
-      <th>ID</th><th>Name</th><th>Contact</th><th>Gender</th><th>History</th><th>Address</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for c in customers %}
-    <tr>
-      <td>{{ c.C_ID }}</td>
-      <td>{{ c.C_NAME }}</td>
-      <td>{{ c.C_CONTACT }}</td>
-      <td>{{ c.C_GENDER }}</td>
-      <td>{{ c.C_HISTORY }}</td>
-      <td>{{ c.C_ADDRESS }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+    <h4 class="text-danger fw-bold mb-3 text-center">➕ Add Customer</h4>
+    
+    <form method="POST" action="/customer">
 
-<div class="text-center mt-4">
-  <a href="/" class="btn btn-outline-dark">⬅ Back to Home</a>
+        <div class="row g-3">
+
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Customer Name</label>
+                <input type="text" name="C_name" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Contact Number</label>
+                <input type="text" name="C_contact" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Gender</label>
+                <select name="C_gender" class="form-control" required>
+                    <option value="">Select</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+    <label class="form-label fw-semibold">Hospital</label>
+    <select name="Hs1_id" class="form-select">
+        <option value="">None</option>
+        {% for h in hospitals %}
+        <option value="{{ h[0] }}">{{ h[1] }}</option>
+        {% endfor %}
+    </select>
 </div>
 
-<!-- 🌈 Custom Styling -->
-<style>
-  body {
-    font-family: 'Poppins', sans-serif;
-    background-color: #f9f9fb;
-  }
+            <div class="col-md-12">
+                <label class="form-label fw-semibold">Address</label>
+                <textarea name="C_address" class="form-control" rows="2"></textarea>
+            </div>
 
-  .card {
-    border-radius: 16px;
-    transition: 0.3s ease-in-out;
-  }
+            <input type="hidden" name="C_history" value="New">
 
-  .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 1.5rem 2rem rgba(220, 53, 69, 0.15);
-  }
+        </div>
 
-  .btn-danger {
-    background: linear-gradient(90deg, #dc3545, #b52a38);
-    border: none;
-    transition: all 0.3s ease;
-  }
+        <div class="text-center mt-3">
+            <button class="btn btn-danger px-5 py-2 fw-semibold">Add Customer</button>
+        </div>
 
-  .btn-danger:hover {
-    transform: scale(1.07);
-    background: linear-gradient(90deg, #b52a38, #941d2d);
-  }
+    </form>
 
-  table {
-    background: #fff;
-  }
+</div>
 
-  table th, table td {
-    text-align: center;
-    vertical-align: middle !important;
-  }
 
-  h2, h3 {
-    font-weight: 700;
-  }
-</style>
+<h4 class="text-danger fw-bold mb-3 text-center">📋 Customer List</h4>
 
-</body>
-</html>
+{% if customers %}
+<table class="table table-bordered table-striped shadow-sm text-center">
+    <thead class="table-danger">
+    <tr>
+        {% for h in customers[0].keys() %}
+            <th>{{ h }}</th>
+        {% endfor %}
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for row in customers %}
+        <tr>
+            {% for v in row.values() %}
+                <td>{{ v }}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% else %}
+<div class="alert alert-warning fw-bold text-center">
+    ⚠ No customer records found.
+</div>
+{% endif %}
+
+<div class="text-center mt-4">
+    <a href="/donor" class="btn btn-outline-dark px-5 py-2">⬅ Donors</a>
+    <a href="/appointments" class="btn btn-danger px-5 py-2">Next: Appointments ➜</a>
+</div>
+
+{% endblock %}
